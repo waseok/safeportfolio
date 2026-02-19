@@ -37,11 +37,20 @@ export default function SignupPage() {
         return;
       }
 
-      // 서버 API로 프로필 등록 (RLS/세션 이슈 회피)
+      const accessToken = authData.session?.access_token;
+      if (!accessToken) {
+        setError("세션을 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.");
+        return;
+      }
+
+      // 서버 API로 프로필 등록 (토큰으로 사용자 확인 → 쿠키 타이밍 이슈 없음)
       const res = await fetch("/api/signup/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim() }),
+        body: JSON.stringify({
+          name: name.trim(),
+          accessToken,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {

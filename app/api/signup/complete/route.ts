@@ -1,25 +1,23 @@
-import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
 /**
- * 교사 회원가입 후 프로필(users 테이블)을 서버에서 등록합니다.
- * 클라이언트 RLS/세션 타이밍 이슈를 피하기 위해 Service Role로 insert.
+ * 교사 회원가입 직후 프로필(users 테이블) 등록.
+ * 쿠키 타이밍 이슈를 피하기 위해 클라이언트가 보낸 access_token으로 사용자 확인.
  */
 export async function POST(request: Request) {
   try {
-    const auth = await createClient();
-    const {
-      data: { user },
-    } = await auth.auth.getUser();
-    if (!user) {
+    const body = await request.json().catch(() => ({}));
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const accessToken =
+      typeof body.accessToken === "string" ? body.accessToken.trim() : null;
+
+    if (!accessToken) {
       return NextResponse.json(
-        { error: "로그인된 사용자만 호출할 수 있습니다." },
+        { error: "세션 정보가 없습니다. 다시 로그인해 주세요." },
         { status: 401 }
       );
     }
-
-    const body = await request.json().catch(() => ({}));
-    const name = typeof body.name === "string" ? body.name.trim() : "";
     if (!name) {
       return NextResponse.json(
         { error: "이름을 입력해주세요." },
@@ -28,6 +26,18 @@ export async function POST(request: Request) {
     }
 
     const supabase = createServiceClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(accessToken);
+
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: "토큰이 만료되었거나 유효하지 않습니다. 다시 가입해 주세요." },
+        { status: 401 }
+      );
+    }
+
     const { error } = await supabase.from("users").upsert(
       {
         id: user.id,
