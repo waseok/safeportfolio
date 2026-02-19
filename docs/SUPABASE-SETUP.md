@@ -63,11 +63,15 @@ SUPABASE_SERVICE_ROLE_KEY=여기에_service_role_시크릿_키
 
 이렇게 해야 로그인/회원가입 후 다시 앱으로 돌아올 수 있습니다.
 
-### 3-2. 이메일 인증 (선택)
+### 3-2. 이메일 인증 끄기 (쉽게 가입하려면 필수)
 
-- **Authentication → Providers → Email**  
-  - 개발 단계에서는 **Confirm email** 끄면, 이메일 인증 없이 바로 로그인 가능  
-  - 운영 시에는 보안을 위해 켜두고, Supabase **Email Templates**에서 인증 메일 내용을 수정해 사용하는 것을 권장
+SAFE는 **이메일 인증 없이** 바로 가입·로그인되도록 사용하는 것을 권장합니다.
+
+1. Supabase 대시보드 → **Authentication** → **Providers**
+2. **Email** 클릭
+3. **Confirm email** 옵션을 **끄기(OFF)** 로 설정 후 저장
+
+이렇게 하면 회원가입 시 메일 인증 링크 없이 바로 계정이 활성화되고, 가입 직후 관리자 페이지로 이동합니다.
 
 ### 3-3. DB·Storage는 로컬과 동일
 

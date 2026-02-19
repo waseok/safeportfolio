@@ -19,33 +19,44 @@ export default function SignupPage() {
     setError(null);
     setLoading(true);
     const supabase = createClient();
-    const { data: authData, error: signError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    if (signError) {
-      setError(signError.message);
+
+    try {
+      const { data: authData, error: signError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      if (signError) {
+        setError(signError.message);
+        return;
+      }
+
+      const userId = authData.user?.id;
+      if (!userId) {
+        setError(
+          "Supabase에서 이메일 인증이 켜져 있어 가입 후 바로 로그인되지 않습니다. Supabase 대시보드 → Authentication → Providers → Email에서 'Confirm email'을 끄고 다시 가입해 주세요."
+        );
+        return;
+      }
+
+      const { error: profileError } = await supabase.from("users").insert({
+        id: userId,
+        role: "teacher",
+        name: name.trim(),
+      });
+      if (profileError) {
+        setError(profileError.message);
+        return;
+      }
+
+      router.push("/admin");
+      router.refresh();
+    } catch {
+      setError(
+        "회원가입 처리 중 알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+      );
+    } finally {
       setLoading(false);
-      return;
     }
-    const userId = authData.user?.id;
-    if (!userId) {
-      setError("회원가입 후 사용자 ID를 불러올 수 없습니다.");
-      setLoading(false);
-      return;
-    }
-    const { error: profileError } = await supabase.from("users").insert({
-      id: userId,
-      role: "teacher",
-      name: name.trim(),
-    });
-    if (profileError) {
-      setError(profileError.message);
-      setLoading(false);
-      return;
-    }
-    router.push("/admin");
-    router.refresh();
   }
 
   return (
@@ -70,12 +81,12 @@ export default function SignupPage() {
           />
           <input
             type="password"
-            placeholder="비밀번호 (6자 이상)"
+            placeholder="비밀번호 (4자 이상, 숫자 가능)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="rounded-lg border border-amber-200 px-4 py-2 focus:border-amber-500 focus:outline-none"
             required
-            minLength={6}
+            minLength={4}
           />
           <input
             type="text"

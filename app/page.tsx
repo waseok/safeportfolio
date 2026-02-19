@@ -34,12 +34,6 @@ export default function Home() {
               핵심 기능
             </a>
             <a
-              href="#tech"
-              className="text-amber-800/80 transition hover:text-amber-900"
-            >
-              기술 스택
-            </a>
-            <a
               href="#flow"
               className="text-amber-800/80 transition hover:text-amber-900"
             >
@@ -247,59 +241,6 @@ export default function Home() {
               <p className="mt-3 text-[11px] font-medium text-amber-600">
                 관련 화면: /(student)/shop, /api/shop/purchase
               </p>
-            </article>
-          </div>
-        </section>
-
-        {/* 기술 스택 섹션: 실제 package.json 기준으로 정리 */}
-        <section id="tech" className="space-y-5">
-          <h2 className="text-lg font-semibold text-amber-950 md:text-xl">
-            사용 기술 스택
-          </h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <article className="rounded-2xl border border-amber-100 bg-white/70 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-amber-900 md:text-base">
-                프론트엔드 & UI
-              </h3>
-              <ul className="mt-3 space-y-1.5 text-xs text-amber-800/90 md:text-sm">
-                <li>
-                  <span className="font-semibold">Next.js 16 (App Router)</span>{" "}
-                  기반 싱글 페이지 라우팅 구조
-                </li>
-                <li>
-                  <span className="font-semibold">React 19</span>로 상태 관리 및
-                  인터랙션 구현
-                </li>
-                <li>
-                  <span className="font-semibold">Tailwind CSS v4</span>로
-                  반응형 레이아웃과 일관된 디자인 시스템 구성
-                </li>
-                <li>
-                  <span className="font-semibold">Geist 폰트</span>로
-                  가독성과 현대적인 분위기 강화
-                </li>
-              </ul>
-            </article>
-
-            <article className="rounded-2xl border border-amber-100 bg-white/70 p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-amber-900 md:text-base">
-                백엔드 & 인프라
-              </h3>
-              <ul className="mt-3 space-y-1.5 text-xs text-amber-800/90 md:text-sm">
-                <li>
-                  <span className="font-semibold">@supabase/supabase-js</span>를
-                  사용한 인증 및 데이터베이스 연동
-                </li>
-                <li>
-                  Next.js <span className="font-semibold">Route Handlers</span>
-                  로 RESTful API 엔드포인트 구현
-                </li>
-                <li>
-                  <span className="font-semibold">TypeScript</span> 기반 타입
-                  안정성과 유지보수성 확보
-                </li>
-                <li>ESLint를 활용한 기본 코드 품질 관리 설정</li>
-              </ul>
             </article>
           </div>
         </section>
