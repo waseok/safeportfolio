@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "watch-push": "node scripts/watch-and-push.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",

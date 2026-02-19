@@ -75,7 +75,21 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 Supabase Dashboard → **Authentication** → **URL Configuration** → **Redirect URLs**에  
 `https://당신프로젝트.vercel.app/**` 를 추가하면 로그인/회원가입이 정상 동작합니다.
 
+### 로컬 수정 → 자동 배포 (watch-push)
+
+로컬에서 파일을 수정할 때마다 **자동으로 Git push → Vercel 배포**가 되게 하려면:
+
+1. 터미널을 하나 열고 프로젝트 폴더에서 다음을 실행해 두세요.
+   ```bash
+   npm run watch-push
+   ```
+2. Cursor에서 코드를 수정·저장하면 **15초마다** 변경 여부를 확인해, 변경이 있으면 `git add` → `git commit` → `git push origin main`을 자동 실행합니다.
+3. push가 완료되면 Vercel이 GitHub를 감지해 새 배포를 시작합니다. (중지: 해당 터미널에서 `Ctrl+C`)
+
+> 처음 한 번은 `git config user.name` / `git config user.email` 설정과 `git remote add origin`이 되어 있어야 합니다.
+
 ### 코드 수정 후 배포가 안 바뀌는 경우
 
-- 반드시 **Git에 push**한 뒤, Vercel 대시보드 **Deployments**에서 새 배포가 생성됐는지 확인하세요.
+- **watch-push를 쓰지 않을 때**: 수정 후 직접 `git add .` → `git commit -m "..."` → `git push origin main` 해 주세요.
+- Vercel 대시보드 **Deployments**에서 새 배포가 생성됐는지 확인하세요.
 - 수동 배포만 했다면 Git과 연동되지 않은 상태일 수 있으므로, 위 **Git 연동** 절차대로 GitHub 저장소를 연결한 뒤 push로 배포하세요.

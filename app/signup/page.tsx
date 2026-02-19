@@ -30,21 +30,22 @@ export default function SignupPage() {
         return;
       }
 
-      const userId = authData.user?.id;
-      if (!userId) {
+      if (!authData.user?.id) {
         setError(
-          "Supabase에서 이메일 인증이 켜져 있어 가입 후 바로 로그인되지 않습니다. Supabase 대시보드 → Authentication → Providers → Email에서 'Confirm email'을 끄고 다시 가입해 주세요."
+          "Supabase에서 이메일 인증이 켜져 있습니다. 대시보드 → Authentication → Providers → Email에서 'Confirm email'을 끄고 다시 가입해 주세요."
         );
         return;
       }
 
-      const { error: profileError } = await supabase.from("users").insert({
-        id: userId,
-        role: "teacher",
-        name: name.trim(),
+      // 서버 API로 프로필 등록 (RLS/세션 이슈 회피)
+      const res = await fetch("/api/signup/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim() }),
       });
-      if (profileError) {
-        setError(profileError.message);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "프로필 저장에 실패했습니다.");
         return;
       }
 
