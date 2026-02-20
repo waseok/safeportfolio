@@ -88,8 +88,22 @@ Supabase Dashboard → **Authentication** → **URL Configuration** → **Redire
 
 > 처음 한 번은 `git config user.name` / `git config user.email` 설정과 `git remote add origin`이 되어 있어야 합니다.
 
+### 수정 후 GitHub 푸시 (배포 반영)
+
+코드를 수정했으면 **아래 명령어로 푸시**해야 Vercel에 반영됩니다. (한 번에 한 줄씩 실행)
+
+```powershell
+cd C:\curcor\safeportfolio
+git add .
+git commit -m "수정 내용 한 줄 요약"
+git push origin main
+```
+
+- `git commit -m "..."` 안의 메시지는 이번에 뭘 바꿨는지 적으면 됩니다. (예: `fix: 회원가입 오류 수정`)
+- push가 끝나면 Vercel이 자동으로 새 배포를 시작합니다.
+
 ### 코드 수정 후 배포가 안 바뀌는 경우
 
-- **watch-push를 쓰지 않을 때**: 수정 후 직접 `git add .` → `git commit -m "..."` → `git push origin main` 해 주세요.
+- 위 **푸시 명령어**를 실행했는지 확인하세요.
 - Vercel 대시보드 **Deployments**에서 새 배포가 생성됐는지 확인하세요.
 - 수동 배포만 했다면 Git과 연동되지 않은 상태일 수 있으므로, 위 **Git 연동** 절차대로 GitHub 저장소를 연결한 뒤 push로 배포하세요.

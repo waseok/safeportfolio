@@ -43,7 +43,9 @@ export default function SignupPage() {
         return;
       }
 
-      // 서버 API로 프로필 등록 (토큰으로 사용자 확인 → 쿠키 타이밍 이슈 없음)
+      // 서버 API로 프로필 등록 (타임아웃 15초 → 무한 대기 방지)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
       const res = await fetch("/api/signup/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -51,7 +53,9 @@ export default function SignupPage() {
           name: name.trim(),
           accessToken,
         }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(data.error || "프로필 저장에 실패했습니다.");
@@ -60,10 +64,14 @@ export default function SignupPage() {
 
       router.push("/admin");
       router.refresh();
-    } catch {
-      setError(
-        "회원가입 처리 중 알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
-      );
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        setError("요청 시간이 초과되었습니다. 네트워크를 확인한 뒤 다시 시도해 주세요.");
+      } else {
+        setError(
+          "회원가입 처리 중 알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+        );
+      }
     } finally {
       setLoading(false);
     }
