@@ -58,7 +58,17 @@ export default function SignupPage() {
       clearTimeout(timeoutId);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "프로필 저장에 실패했습니다.");
+        const raw = data.error || "프로필 저장에 실패했습니다.";
+        if (
+          typeof raw === "string" &&
+          (raw.includes("schema cache") || raw.includes("public.users"))
+        ) {
+          setError(
+            "Supabase에 users 테이블이 없습니다. Supabase 대시보드 → SQL Editor에서 프로젝트의 supabase/schema.sql 내용 전체를 붙여넣고 Run 실행한 뒤 다시 시도하세요."
+          );
+        } else {
+          setError(raw);
+        }
         return;
       }
 

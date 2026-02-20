@@ -1,5 +1,20 @@
 # Supabase 설정 가이드 (SAFE 프로젝트)
 
+## 0. "Could not find the table 'public.users'" 오류가 날 때
+
+회원가입·로그인 시 **테이블을 찾을 수 없다**는 오류가 나오면, **DB 스키마를 아직 적용하지 않은 상태**입니다.
+
+1. [Supabase 대시보드](https://supabase.com/dashboard) → 사용 중인 **프로젝트** 선택
+2. 왼쪽 메뉴 **SQL Editor** 클릭
+3. **New query** 로 새 쿼리 열기
+4. 이 저장소의 **`supabase/schema.sql`** 파일 내용 **전체**를 복사해서 붙여넣기
+5. **Run** (또는 Ctrl+Enter) 실행
+6. 에러 없이 완료되면 **Table Editor**에서 `users`, `classes` 등 테이블이 보이는지 확인
+
+이후 다시 회원가입을 시도하면 됩니다.
+
+---
+
 ## 1. 환경 변수 매핑
 
 Supabase 대시보드 **Settings → API**에서 보이는 값과 앱에서 쓰는 환경 변수는 아래처럼 맞춥니다.
