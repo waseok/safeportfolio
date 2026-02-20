@@ -14,6 +14,25 @@ const CATEGORIES = [
   "응급처치",
 ];
 
+function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  message: string
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const id = setTimeout(() => reject(new Error(message)), ms);
+    promise
+      .then((value) => {
+        clearTimeout(id);
+        resolve(value);
+      })
+      .catch((err) => {
+        clearTimeout(id);
+        reject(err);
+      });
+  });
+}
+
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [category, setCategory] = useState("");
@@ -31,43 +50,63 @@ export default function UploadPage() {
     setError(null);
     setLoading(true);
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setError("로그인이 필요합니다.");
-      setLoading(false);
-      return;
-    }
-    const ext = file.name.split(".").pop() || "jpg";
-    const path = `${user.id}/${Date.now()}.${ext}`;
-    const { error: uploadError } = await supabase.storage
-      .from("cert-images")
-      .upload(path, file, { upsert: false });
-    if (uploadError) {
-      setError(uploadError.message);
-      setLoading(false);
-      return;
-    }
-    const { data: urlData } = supabase.storage
-      .from("cert-images")
-      .getPublicUrl(path);
-    const imageUrl = urlData.publicUrl;
+    try {
+      const {
+        data: { user },
+      } = await withTimeout(
+        supabase.auth.getUser(),
+        10000,
+        "로그인 정보를 확인하는 중 시간이 초과되었습니다."
+      );
 
-    const { error: insertError } = await supabase.from("gallery_posts").insert({
-      user_id: user.id,
-      image_url: imageUrl,
-      category: category || null,
-      description: description.trim() || null,
-      status: "pending",
-    });
-    if (insertError) {
-      setError(insertError.message);
+      if (!user) {
+        setError("로그인이 필요합니다.");
+        return;
+      }
+
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${user.id}/${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await withTimeout(
+        supabase.storage.from("cert-images").upload(path, file, { upsert: false }),
+        20000,
+        "사진 업로드가 지연되고 있습니다. 네트워크 상태를 확인 후 다시 시도해주세요."
+      );
+      if (uploadError) {
+        setError(uploadError.message);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage.from("cert-images").getPublicUrl(path);
+      const imageUrl = urlData.publicUrl;
+
+      const { error: insertError } = await withTimeout(
+        supabase.from("gallery_posts").insert({
+          user_id: user.id,
+          image_url: imageUrl,
+          category: category || null,
+          description: description.trim() || null,
+          status: "pending",
+        }),
+        10000,
+        "업로드 기록 저장이 지연되고 있습니다. 잠시 후 다시 시도해주세요."
+      );
+      if (insertError) {
+        setError(insertError.message);
+        return;
+      }
+
+      router.push("/gallery");
+      router.refresh();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "업로드 처리 중 알 수 없는 오류가 발생했습니다."
+      );
+    } finally {
       setLoading(false);
-      return;
     }
-    router.push("/gallery");
-    router.refresh();
   }
 
   return (
