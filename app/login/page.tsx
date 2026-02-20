@@ -11,6 +11,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [testEmail, setTestEmail] = useState("");
+  const [testPassword, setTestPassword] = useState("");
   const router = useRouter();
 
   async function quickLogin(kind: "teacher" | "student") {
@@ -22,36 +24,43 @@ export default function LoginPage() {
       kind === "teacher"
         ? process.env.NEXT_PUBLIC_TEST_TEACHER_PASSWORD
         : process.env.NEXT_PUBLIC_TEST_STUDENT_PASSWORD;
-    if (!emailEnv || !passwordEnv) {
-      setError("테스트 계정 환경변수가 설정되어 있지 않습니다.");
+    const useEmail = emailEnv || testEmail.trim();
+    const usePassword = passwordEnv || testPassword;
+    if (!useEmail || !usePassword) {
+      setError(
+        "테스트 이메일·비밀번호를 아래 칸에 입력하거나, Vercel 환경 변수에 NEXT_PUBLIC_TEST_TEACHER_EMAIL 등 4개를 설정하세요."
+      );
       return;
     }
     setError(null);
     setLoading(true);
     const supabase = createClient();
-    // 먼저 로그인 시도
-    const signInResult = await supabase.auth.signInWithPassword({
-      email: emailEnv,
-      password: passwordEnv,
-    });
+    try {
+      const signInResult = await supabase.auth.signInWithPassword({
+        email: useEmail,
+        password: usePassword,
+      });
 
-    let userId = signInResult.data.user?.id ?? null;
+      let userId = signInResult.data.user?.id ?? null;
 
-    // 없으면 자동 회원가입
-    if (!userId && signInResult.error) {
-      const { data: signUpData, error: signUpError } =
-        await supabase.auth.signUp({
-          email: emailEnv,
-          password: passwordEnv,
-        });
-      if (signUpError || !signUpData.user) {
-        setError("테스트 계정을 만들 수 없습니다.");
-        setLoading(false);
+      if (!userId && signInResult.error) {
+        const { data: signUpData, error: signUpError } =
+          await supabase.auth.signUp({
+            email: useEmail,
+            password: usePassword,
+          });
+        if (signUpError || !signUpData.user) {
+          setError(signUpError?.message ?? "테스트 계정을 만들 수 없습니다.");
+          return;
+        }
+        userId = signUpData.user.id;
+      }
+
+      if (!userId) {
+        setError("이메일 인증이 켜져 있을 수 있습니다. Supabase에서 Confirm email을 끄거나, 위에서 직접 이메일·비밀번호로 로그인하세요.");
         return;
       }
-      userId = signUpData.user.id;
 
-      // users 테이블에 프로필 upsert
       const role: Role = kind === "teacher" ? "teacher" : "student";
       await supabase.from("users").upsert(
         {
@@ -61,11 +70,14 @@ export default function LoginPage() {
         },
         { onConflict: "id" }
       );
-    }
 
-    const role: Role = kind === "teacher" ? "teacher" : "student";
-    router.push(getRedirectPath(role));
-    router.refresh();
+      router.push(getRedirectPath(role));
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "테스트 입장 중 오류가 났습니다.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -73,22 +85,44 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     const supabase = createClient();
-    const { error: signError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (signError) {
-      setError(signError.message);
+    try {
+      const { data: signData, error: signError } =
+        await supabase.auth.signInWithPassword({ email, password });
+      if (signError) {
+        setError(signError.message);
+        return;
+      }
+      const userId = signData.user?.id;
+      if (!userId) {
+        setError("로그인에 실패했습니다. Supabase에서 Confirm email을 끄고 다시 시도하세요.");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", userId)
+        .single();
+
+      if (!profile) {
+        await supabase.from("users").upsert(
+          {
+            id: userId,
+            role: "teacher",
+            name: email.split("@")[0] || "교사",
+          },
+          { onConflict: "id" }
+        );
+      }
+
+      const role = (profile?.role ?? "teacher") as Role;
+      router.push(getRedirectPath(role));
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "로그인 처리 중 오류가 발생했습니다.");
+    } finally {
       setLoading(false);
-      return;
     }
-    const { data: profile } = await supabase
-      .from("users")
-      .select("role")
-      .single();
-    const role = (profile?.role ?? "student") as Role;
-    router.push(getRedirectPath(role));
-    router.refresh();
   }
 
   return (
@@ -141,18 +175,41 @@ export default function LoginPage() {
             <p className="text-xs text-amber-700/80">
               (개발용) 테스트 계정으로 바로 들어가기
             </p>
+            {!(process.env.NEXT_PUBLIC_TEST_TEACHER_EMAIL && process.env.NEXT_PUBLIC_TEST_TEACHER_PASSWORD) && (
+              <div className="flex flex-col gap-1 rounded-lg bg-amber-50/80 p-2">
+                <input
+                  type="email"
+                  placeholder="테스트 이메일"
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                  className="rounded border border-amber-200 px-2 py-1 text-xs"
+                />
+                <input
+                  type="password"
+                  placeholder="테스트 비밀번호"
+                  value={testPassword}
+                  onChange={(e) => setTestPassword(e.target.value)}
+                  className="rounded border border-amber-200 px-2 py-1 text-xs"
+                />
+                <p className="text-[10px] text-amber-700/80">
+                  환경 변수 없이 사용: 위 칸에 입력 후 아래 버튼 클릭 (없는 계정이면 자동 가입)
+                </p>
+              </div>
+            )}
             <div className="flex flex-wrap items-center justify-center gap-2">
               <button
                 type="button"
                 onClick={() => quickLogin("teacher")}
-                className="rounded-lg border border-amber-300 px-3 py-1 text-xs text-amber-800 hover:bg-amber-50"
+                disabled={loading}
+                className="rounded-lg border border-amber-300 px-3 py-1 text-xs text-amber-800 hover:bg-amber-50 disabled:opacity-50"
               >
                 교사 테스트 입장
               </button>
               <button
                 type="button"
                 onClick={() => quickLogin("student")}
-                className="rounded-lg border border-amber-300 px-3 py-1 text-xs text-amber-800 hover:bg-amber-50"
+                disabled={loading}
+                className="rounded-lg border border-amber-300 px-3 py-1 text-xs text-amber-800 hover:bg-amber-50 disabled:opacity-50"
               >
                 학생 테스트 입장
               </button>

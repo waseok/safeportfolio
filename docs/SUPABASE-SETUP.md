@@ -78,7 +78,16 @@ SAFE는 **이메일 인증 없이** 바로 가입·로그인되도록 사용하�
 - **테이블·RLS**: 로컬에서 쓰는 것과 같은 Supabase 프로젝트를 쓰면, `schema.sql`로 만든 테이블·RLS가 그대로 적용됩니다.
 - **Storage**: 인증샷 업로드용 버킷 `cert-images`가 있다면, 배포 환경에서도 같은 버킷을 쓰므로 별도 설정은 없어도 됩니다. (버킷이 없으면 `supabase/README.md` 등에 있는 Storage 생성·정책 설정을 한 번 적용하면 됩니다.)
 
-### 3-4. 환경 변수는 배포 쪽에만
+### 3-4. 로그인이 안 될 때
+
+- **Supabase → Authentication → Providers → Email**  
+  **Confirm email**이 **OFF**인지 확인하세요. 켜져 있으면 이메일 인증 전까지 로그인/세션이 완료되지 않습니다.
+- **Supabase → Authentication → URL Configuration**  
+  **Redirect URLs**에 배포 주소(예: `https://xxx.vercel.app/**`)가 들어가 있어야 합니다. **Site URL**도 배포 주소로 맞춰 두세요.
+- Vercel **Environment Variables**에 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`가 올바르게 들어가 있는지 확인하세요.
+- 화면에 **에러 메시지**가 뜨면 그 내용을 확인하면 원인 파악에 도움이 됩니다.
+
+### 3-5. 환경 변수는 배포 쪽에만
 
 - **시크릿 키(SUPABASE_SERVICE_ROLE_KEY)** 는 반드시 **서버만** 쓰도록 배포 플랫폼의 Environment Variables에만 넣고,  
   GitHub 등 저장소나 클라이언트 번들에는 절대 포함되지 않도록 하세요.
