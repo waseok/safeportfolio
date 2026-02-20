@@ -86,7 +86,7 @@ export default function LoginPage() {
     setLoading(true);
 
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      setError("Supabase 설정이 없습니다. Vercel 환경 변수에 NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY를 넣었는지 확인하세요.");
+      setError("Supabase 설정이 없습니다. Vercel → 프로젝트 → Settings → Environment Variables에 NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY를 추가한 뒤 반드시 Redeploy 하세요.");
       setLoading(false);
       return;
     }
@@ -94,15 +94,16 @@ export default function LoginPage() {
     const supabase = createClient();
     try {
       const signInPromise = supabase.auth.signInWithPassword({ email, password });
+      const timeoutMs = 10000;
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("TIMEOUT")), 15000)
+        setTimeout(() => reject(new Error("TIMEOUT")), timeoutMs)
       );
       const { data: signData, error: signError } = await Promise.race([
         signInPromise,
         timeoutPromise,
       ]).catch((err) => {
         if (err?.message === "TIMEOUT") {
-          throw new Error("연결 시간이 초과되었습니다(15초). Supabase URL·키, 인터넷 연결, Supabase Redirect URL을 확인하세요.");
+          throw new Error(`연결 시간이 초과되었습니다(${timeoutMs / 1000}초). Supabase URL·anon key·Redirect URL을 확인하세요.`);
         }
         throw err;
       }) as Awaited<typeof signInPromise>;
@@ -138,7 +139,8 @@ export default function LoginPage() {
       router.push(getRedirectPath(role));
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "로그인 처리 중 오류가 발생했습니다.");
+      const msg = e instanceof Error ? e.message : "로그인 처리 중 오류가 발생했습니다.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -168,9 +170,12 @@ export default function LoginPage() {
             required
           />
           {error && (
-            <p className="text-sm text-red-600" role="alert">
-              {error}
-            </p>
+            <div
+              role="alert"
+              className="rounded-lg border-2 border-red-300 bg-red-50 p-3 text-sm font-medium text-red-700"
+            >
+              오류: {error}
+            </div>
           )}
           <button
             type="submit"
@@ -179,6 +184,11 @@ export default function LoginPage() {
           >
             {loading ? "로그인 중…" : "로그인"}
           </button>
+          {loading && (
+            <p className="text-center text-xs text-amber-700/80">
+              10초 이상 걸리면 연결 문제입니다. 오류 메시지가 위에 뜹니다.
+            </p>
+          )}
         </form>
         <div className="mt-4 space-y-2 text-center text-sm text-amber-800/80">
           <p>
