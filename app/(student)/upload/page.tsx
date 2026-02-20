@@ -33,6 +33,17 @@ function withTimeout<T>(
   });
 }
 
+function explainUploadError(message: string): string {
+  const lower = message.toLowerCase();
+  if (lower.includes("bucket") && (lower.includes("not found") || lower.includes("does not exist"))) {
+    return "Supabase Storage 버킷(cert-images)이 없습니다. Supabase Dashboard > Storage에서 cert-images 버킷을 생성해 주세요.";
+  }
+  if (lower.includes("row-level security") || lower.includes("permission")) {
+    return "Storage 권한(RLS) 문제입니다. cert-images 버킷 정책에서 업로드 권한을 확인해 주세요.";
+  }
+  return message;
+}
+
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [category, setCategory] = useState("");
@@ -67,30 +78,27 @@ export default function UploadPage() {
       const ext = file.name.split(".").pop() || "jpg";
       const path = `${user.id}/${Date.now()}.${ext}`;
 
-      const { error: uploadError } = await withTimeout(
+      const uploadResult = await withTimeout(
         supabase.storage.from("cert-images").upload(path, file, { upsert: false }),
         20000,
         "사진 업로드가 지연되고 있습니다. 네트워크 상태를 확인 후 다시 시도해주세요."
       );
+      const uploadError = uploadResult.error;
       if (uploadError) {
-        setError(uploadError.message);
+        setError(explainUploadError(uploadError.message));
         return;
       }
 
       const { data: urlData } = supabase.storage.from("cert-images").getPublicUrl(path);
       const imageUrl = urlData.publicUrl;
 
-      const { error: insertError } = await withTimeout(
-        supabase.from("gallery_posts").insert({
-          user_id: user.id,
-          image_url: imageUrl,
-          category: category || null,
-          description: description.trim() || null,
-          status: "pending",
-        }),
-        10000,
-        "업로드 기록 저장이 지연되고 있습니다. 잠시 후 다시 시도해주세요."
-      );
+      const { error: insertError } = await supabase.from("gallery_posts").insert({
+        user_id: user.id,
+        image_url: imageUrl,
+        category: category || null,
+        description: description.trim() || null,
+        status: "pending",
+      });
       if (insertError) {
         setError(insertError.message);
         return;
