@@ -6,75 +6,66 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 
+function toTeacherEmail(id: string): string {
+  const safe = id.trim().toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 30) || "user";
+  return `teacher-${safe}@safe.local`;
+}
+
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [testEmail, setTestEmail] = useState("");
-  const [testPassword, setTestPassword] = useState("");
   const router = useRouter();
 
+  // 테스트 입장: 입력 없이 고정 계정으로 바로 입장
   async function quickLogin(kind: "teacher" | "student") {
-    const emailEnv =
-      kind === "teacher"
-        ? process.env.NEXT_PUBLIC_TEST_TEACHER_EMAIL
-        : process.env.NEXT_PUBLIC_TEST_STUDENT_EMAIL;
-    const passwordEnv =
-      kind === "teacher"
-        ? process.env.NEXT_PUBLIC_TEST_TEACHER_PASSWORD
-        : process.env.NEXT_PUBLIC_TEST_STUDENT_PASSWORD;
-    const useEmail = emailEnv || testEmail.trim();
-    const usePassword = passwordEnv || testPassword;
-    if (!useEmail || !usePassword) {
-      setError(
-        "테스트 이메일·비밀번호를 아래 칸에 입력하거나, Vercel 환경 변수에 NEXT_PUBLIC_TEST_TEACHER_EMAIL 등 4개를 설정하세요."
-      );
-      return;
-    }
+    const email = kind === "teacher" ? "teacher-test@safe.local" : "student-test@safe.local";
+    const pw = "123456";
     setError(null);
     setLoading(true);
     const supabase = createClient();
     try {
-      const signInResult = await supabase.auth.signInWithPassword({
-        email: useEmail,
-        password: usePassword,
-      });
-
-      let userId = signInResult.data.user?.id ?? null;
-
-      if (!userId && signInResult.error) {
-        const { data: signUpData, error: signUpError } =
-          await supabase.auth.signUp({
-            email: useEmail,
-            password: usePassword,
-          });
-        if (signUpError || !signUpData.user) {
-          setError(signUpError?.message ?? "테스트 계정을 만들 수 없습니다.");
+      let res = await supabase.auth.signInWithPassword({ email, password: pw });
+      let uid = res.data.user?.id ?? null;
+      if (!uid && res.error) {
+        const signUp = await supabase.auth.signUp({ email, password: pw });
+        if (signUp.error || !signUp.data.user) {
+          setError(signUp.error?.message ?? "테스트 계정 생성 실패");
           return;
         }
-        userId = signUpData.user.id;
+        uid = signUp.data.user.id;
       }
-
-      if (!userId) {
-        setError("이메일 인증이 켜져 있을 수 있습니다. Supabase에서 Confirm email을 끄거나, 위에서 직접 이메일·비밀번호로 로그인하세요.");
+      if (!uid) {
+        setError("테스트 입장에 실패했습니다. Supabase Confirm email을 끄고 다시 시도하세요.");
         return;
       }
-
       const role: Role = kind === "teacher" ? "teacher" : "student";
       await supabase.from("users").upsert(
-        {
-          id: userId,
-          role,
-          name: role === "teacher" ? "테스트 교사" : "테스트 학생",
-        },
+        { id: uid, role, name: kind === "teacher" ? "테스트 교사" : "테스트 학생" },
         { onConflict: "id" }
       );
-
+      if (kind === "teacher") {
+        const { data: cls } = await supabase.from("classes").select("id").eq("code", "1234").maybeSingle();
+        if (!cls) {
+          await supabase.from("classes").insert({
+            teacher_id: uid,
+            code: "1234",
+            name: "테스트 학급",
+            grade: 1,
+            class_number: 1,
+          });
+        }
+      } else {
+        const { data: cls } = await supabase.from("classes").select("id").eq("code", "1234").maybeSingle();
+        if (cls) {
+          await supabase.from("users").update({ class_id: cls.id }).eq("id", uid);
+        }
+      }
       router.push(getRedirectPath(role));
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "테스트 입장 중 오류가 났습니다.");
+      setError(e instanceof Error ? e.message : "테스트 입장 중 오류");
     } finally {
       setLoading(false);
     }
@@ -84,63 +75,48 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      setError("Supabase 설정이 없습니다. Vercel → 프로젝트 → Settings → Environment Variables에 NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY를 추가한 뒤 반드시 Redeploy 하세요.");
+    const id = userId.trim();
+    const pw = password.replace(/\D/g, "").slice(0, 6);
+    if (!id) {
+      setError("아이디를 입력해 주세요.");
+      setLoading(false);
+      return;
+    }
+    if (pw.length !== 6) {
+      setError("비밀번호는 숫자 6자리로 입력해 주세요.");
       setLoading(false);
       return;
     }
 
+    const email = toTeacherEmail(id);
     const supabase = createClient();
     try {
-      const signInPromise = supabase.auth.signInWithPassword({ email, password });
-      const timeoutMs = 10000;
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("TIMEOUT")), timeoutMs)
-      );
-      const { data: signData, error: signError } = await Promise.race([
-        signInPromise,
-        timeoutPromise,
-      ]).catch((err) => {
-        if (err?.message === "TIMEOUT") {
-          throw new Error(`연결 시간이 초과되었습니다(${timeoutMs / 1000}초). Supabase URL·anon key·Redirect URL을 확인하세요.`);
-        }
-        throw err;
-      }) as Awaited<typeof signInPromise>;
-
+      const { data: signData, error: signError } = await supabase.auth.signInWithPassword({
+        email,
+        password: pw,
+      });
       if (signError) {
         setError(signError.message);
         return;
       }
-      const userId = signData.user?.id;
-      if (!userId) {
-        setError("로그인에 실패했습니다. Supabase 대시보드 → Authentication → Email에서 Confirm email을 끄고 다시 시도하세요.");
+      const uid = signData.user?.id;
+      if (!uid) {
+        setError("로그인에 실패했습니다. Supabase에서 Confirm email을 끄고 다시 시도하세요.");
         return;
       }
 
-      const { data: profile } = await supabase
-        .from("users")
-        .select("role")
-        .eq("id", userId)
-        .single();
-
+      const { data: profile } = await supabase.from("users").select("role").eq("id", uid).single();
       if (!profile) {
         await supabase.from("users").upsert(
-          {
-            id: userId,
-            role: "teacher",
-            name: email.split("@")[0] || "교사",
-          },
+          { id: uid, role: "teacher", name: id },
           { onConflict: "id" }
         );
       }
-
       const role = (profile?.role ?? "teacher") as Role;
       router.push(getRedirectPath(role));
       router.refresh();
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "로그인 처리 중 오류가 발생했습니다.";
-      setError(msg);
+      setError(e instanceof Error ? e.message : "로그인 처리 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
@@ -154,26 +130,25 @@ export default function LoginPage() {
         </h1>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
-            type="email"
-            placeholder="이메일"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            placeholder="아이디"
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
             className="rounded-lg border border-amber-200 px-4 py-2 focus:border-amber-500 focus:outline-none"
             required
           />
           <input
             type="password"
-            placeholder="비밀번호"
+            inputMode="numeric"
+            maxLength={6}
+            placeholder="비밀번호 (숫자 6자리)"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="rounded-lg border border-amber-200 px-4 py-2 focus:border-amber-500 focus:outline-none"
+            onChange={(e) => setPassword(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            className="rounded-lg border border-amber-200 px-4 py-2 text-center tracking-[0.3em] focus:border-amber-500 focus:outline-none"
             required
           />
           {error && (
-            <div
-              role="alert"
-              className="rounded-lg border-2 border-red-300 bg-red-50 p-3 text-sm font-medium text-red-700"
-            >
+            <div role="alert" className="rounded-lg border-2 border-red-300 bg-red-50 p-3 text-sm text-red-700">
               오류: {error}
             </div>
           )}
@@ -184,65 +159,34 @@ export default function LoginPage() {
           >
             {loading ? "로그인 중…" : "로그인"}
           </button>
-          {loading && (
-            <p className="text-center text-xs text-amber-700/80">
-              10초 이상 걸리면 연결 문제입니다. 오류 메시지가 위에 뜹니다.
-            </p>
-          )}
         </form>
-        <div className="mt-4 space-y-2 text-center text-sm text-amber-800/80">
-          <p>
-            선생님이 처음이신가요?{" "}
-            <Link
-              href="/signup"
-              className="font-medium text-amber-600 underline"
-            >
-              교사 회원가입
-            </Link>
+        <p className="mt-4 text-center text-sm text-amber-800/80">
+          처음이신가요?{" "}
+          <Link href="/signup" className="font-medium text-amber-600 underline">
+            교사 회원가입
+          </Link>
+        </p>
+        <div className="mt-4 flex flex-col gap-2 border-t border-amber-100 pt-4">
+          <p className="text-center text-xs text-amber-700/80">
+            테스트: 아래 버튼만 누르면 바로 입장
           </p>
-          <div className="mt-3 flex flex-col gap-2">
-            <p className="text-xs text-amber-700/80">
-              (개발용) 테스트 계정으로 바로 들어가기
-            </p>
-            {!(process.env.NEXT_PUBLIC_TEST_TEACHER_EMAIL && process.env.NEXT_PUBLIC_TEST_TEACHER_PASSWORD) && (
-              <div className="flex flex-col gap-1 rounded-lg bg-amber-50/80 p-2">
-                <input
-                  type="email"
-                  placeholder="테스트 이메일"
-                  value={testEmail}
-                  onChange={(e) => setTestEmail(e.target.value)}
-                  className="rounded border border-amber-200 px-2 py-1 text-xs"
-                />
-                <input
-                  type="password"
-                  placeholder="테스트 비밀번호"
-                  value={testPassword}
-                  onChange={(e) => setTestPassword(e.target.value)}
-                  className="rounded border border-amber-200 px-2 py-1 text-xs"
-                />
-                <p className="text-[10px] text-amber-700/80">
-                  환경 변수 없이 사용: 위 칸에 입력 후 아래 버튼 클릭 (없는 계정이면 자동 가입)
-                </p>
-              </div>
-            )}
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={() => quickLogin("teacher")}
-                disabled={loading}
-                className="rounded-lg border border-amber-300 px-3 py-1 text-xs text-amber-800 hover:bg-amber-50 disabled:opacity-50"
-              >
-                교사 테스트 입장
-              </button>
-              <button
-                type="button"
-                onClick={() => quickLogin("student")}
-                disabled={loading}
-                className="rounded-lg border border-amber-300 px-3 py-1 text-xs text-amber-800 hover:bg-amber-50 disabled:opacity-50"
-              >
-                학생 테스트 입장
-              </button>
-            </div>
+          <div className="flex justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => quickLogin("teacher")}
+              disabled={loading}
+              className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+            >
+              교사 테스트 입장
+            </button>
+            <button
+              type="button"
+              onClick={() => quickLogin("student")}
+              disabled={loading}
+              className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+            >
+              학생 테스트 입장
+            </button>
           </div>
         </div>
       </div>
