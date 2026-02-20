@@ -84,17 +84,36 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      setError("Supabase 설정이 없습니다. Vercel 환경 변수에 NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY를 넣었는지 확인하세요.");
+      setLoading(false);
+      return;
+    }
+
     const supabase = createClient();
     try {
-      const { data: signData, error: signError } =
-        await supabase.auth.signInWithPassword({ email, password });
+      const signInPromise = supabase.auth.signInWithPassword({ email, password });
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("TIMEOUT")), 15000)
+      );
+      const { data: signData, error: signError } = await Promise.race([
+        signInPromise,
+        timeoutPromise,
+      ]).catch((err) => {
+        if (err?.message === "TIMEOUT") {
+          throw new Error("연결 시간이 초과되었습니다(15초). Supabase URL·키, 인터넷 연결, Supabase Redirect URL을 확인하세요.");
+        }
+        throw err;
+      }) as Awaited<typeof signInPromise>;
+
       if (signError) {
         setError(signError.message);
         return;
       }
       const userId = signData.user?.id;
       if (!userId) {
-        setError("로그인에 실패했습니다. Supabase에서 Confirm email을 끄고 다시 시도하세요.");
+        setError("로그인에 실패했습니다. Supabase 대시보드 → Authentication → Email에서 Confirm email을 끄고 다시 시도하세요.");
         return;
       }
 
