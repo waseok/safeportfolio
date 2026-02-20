@@ -5,10 +5,22 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 
-/** 아이디 → 내부 이메일 (영문·숫자만, Supabase용) */
+/** 문자열을 짧은 해시로 변환(FNV-1a 변형) */
+function shortHash(input: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < input.length; i += 1) {
+    h ^= input.charCodeAt(i);
+    h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+  }
+  return (h >>> 0).toString(16).padStart(8, "0");
+}
+
+/** 아이디 → 내부 이메일 (한글 아이디도 안정적으로 매핑) */
 function toTeacherEmail(id: string): string {
-  const safe = id.trim().toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 30) || "user";
-  return `teacher-${safe}@safe.local`;
+  const normalized = id.trim().toLowerCase();
+  const ascii = normalized.replace(/[^a-z0-9]/g, "").slice(0, 20) || "user";
+  const hash = shortHash(normalized);
+  return `teacher-${ascii}-${hash}@safe.local`;
 }
 
 // 교사 전용 회원가입: 아이디 + 비밀번호 6자리 + 이름(선택)
@@ -33,7 +45,7 @@ export default function SignupPage() {
       setLoading(false);
       return;
     }
-    if (pw.length !== 4) {
+    if (pw.length !== 6) {
       setError("비밀번호는 숫자 6자리로 입력해 주세요.");
       setLoading(false);
       return;

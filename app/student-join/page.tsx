@@ -4,6 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+function explainDbError(message: string): string {
+  if (message.includes("infinite recursion") || message.includes("policy for relation \"users\"")) {
+    return "DB 정책(RLS) 충돌입니다. Supabase SQL Editor에서 최신 schema.sql을 다시 실행해 주세요.";
+  }
+  return message;
+}
+
 export default function StudentJoinPage() {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +82,7 @@ export default function StudentJoinPage() {
     );
 
     if (profileError) {
-      setError("학생 정보 저장 중 오류가 발생했습니다.");
+      setError(`학생 정보 저장 중 오류: ${explainDbError(profileError.message)}`);
       setLoading(false);
       return;
     }

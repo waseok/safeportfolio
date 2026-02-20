@@ -6,9 +6,29 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 
+/** 문자열을 짧은 해시로 변환(FNV-1a 변형) */
+function shortHash(input: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < input.length; i += 1) {
+    h ^= input.charCodeAt(i);
+    h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+  }
+  return (h >>> 0).toString(16).padStart(8, "0");
+}
+
+/** 아이디 → 내부 이메일 (한글 아이디도 안정적으로 매핑) */
 function toTeacherEmail(id: string): string {
-  const safe = id.trim().toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 30) || "user";
-  return `teacher-${safe}@safe.local`;
+  const normalized = id.trim().toLowerCase();
+  const ascii = normalized.replace(/[^a-z0-9]/g, "").slice(0, 20) || "user";
+  const hash = shortHash(normalized);
+  return `teacher-${ascii}-${hash}@safe.local`;
+}
+
+function explainDbError(message: string): string {
+  if (message.includes("infinite recursion") || message.includes("policy for relation \"users\"")) {
+    return "DB 정책(RLS) 충돌입니다. Supabase SQL Editor에서 최신 schema.sql을 다시 실행해 주세요.";
+  }
+  return message;
 }
 
 export default function LoginPage() {
@@ -41,25 +61,37 @@ export default function LoginPage() {
         return;
       }
       const role: Role = kind === "teacher" ? "teacher" : "student";
-      await supabase.from("users").upsert(
+      const { error: upsertUserError } = await supabase.from("users").upsert(
         { id: uid, role, name: kind === "teacher" ? "테스트 교사" : "테스트 학생" },
         { onConflict: "id" }
       );
+      if (upsertUserError) {
+        setError(`테스트 프로필 저장 실패: ${explainDbError(upsertUserError.message)}`);
+        return;
+      }
       if (kind === "teacher") {
         const { data: cls } = await supabase.from("classes").select("id").eq("code", "1234").maybeSingle();
         if (!cls) {
-          await supabase.from("classes").insert({
+          const { error: classInsertError } = await supabase.from("classes").insert({
             teacher_id: uid,
             code: "1234",
             name: "테스트 학급",
             grade: 1,
             class_number: 1,
           });
+          if (classInsertError) {
+            setError(`테스트 학급 생성 실패: ${explainDbError(classInsertError.message)}`);
+            return;
+          }
         }
       } else {
         const { data: cls } = await supabase.from("classes").select("id").eq("code", "1234").maybeSingle();
         if (cls) {
-          await supabase.from("users").update({ class_id: cls.id }).eq("id", uid);
+          const { error: joinClassError } = await supabase.from("users").update({ class_id: cls.id }).eq("id", uid);
+          if (joinClassError) {
+            setError(`테스트 학생 학급 연결 실패: ${explainDbError(joinClassError.message)}`);
+            return;
+          }
         }
       }
       router.push(getRedirectPath(role));
@@ -105,12 +137,20 @@ export default function LoginPage() {
         return;
       }
 
-      const { data: profile } = await supabase.from("users").select("role").eq("id", uid).single();
+      const { data: profile, error: profileError } = await supabase.from("users").select("role").eq("id", uid).single();
+      if (profileError && profileError.code !== "PGRST116") {
+        setError(`프로필 조회 실패: ${explainDbError(profileError.message)}`);
+        return;
+      }
       if (!profile) {
-        await supabase.from("users").upsert(
+        const { error: createProfileError } = await supabase.from("users").upsert(
           { id: uid, role: "teacher", name: id },
           { onConflict: "id" }
         );
+        if (createProfileError) {
+          setError(`프로필 저장 실패: ${explainDbError(createProfileError.message)}`);
+          return;
+        }
       }
       const role = (profile?.role ?? "teacher") as Role;
       router.push(getRedirectPath(role));

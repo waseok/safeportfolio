@@ -67,6 +67,8 @@ create table if not exists public.user_inventory (
 
 -- user_inventory 참조용 (equipped_avatar_id는 items.id 참조 유지)
 alter table public.users
+  drop constraint if exists fk_equipped_avatar;
+alter table public.users
   add constraint fk_equipped_avatar
   foreign key (equipped_avatar_id) references public.items(id) on delete set null;
 
@@ -77,15 +79,21 @@ alter table public.gallery_posts enable row level security;
 alter table public.items enable row level security;
 alter table public.user_inventory enable row level security;
 
--- users: 본인만 읽기/수정, 교사는 모든 사용자 읽기
+-- users: 본인만 읽기/수정/삽입
+-- 중요: users 정책에서 users 테이블을 다시 조회하면 RLS 재귀로 500이 날 수 있으므로 금지
+drop policy if exists "users_select_own" on public.users;
+drop policy if exists "users_update_own" on public.users;
+drop policy if exists "users_insert_own" on public.users;
+drop policy if exists "teachers_select_all_users" on public.users;
 create policy "users_select_own" on public.users for select using (auth.uid() = id);
 create policy "users_update_own" on public.users for update using (auth.uid() = id);
 create policy "users_insert_own" on public.users for insert with check (auth.uid() = id);
-create policy "teachers_select_all_users" on public.users for select using (
-  exists (select 1 from public.users u where u.id = auth.uid() and u.role = 'teacher')
-);
 
 -- gallery_posts: 학생은 본인 글만, 교사는 전체
+drop policy if exists "gallery_select_own" on public.gallery_posts;
+drop policy if exists "gallery_insert_own" on public.gallery_posts;
+drop policy if exists "gallery_update_own" on public.gallery_posts;
+drop policy if exists "teachers_all_gallery" on public.gallery_posts;
 create policy "gallery_select_own" on public.gallery_posts for select using (user_id = auth.uid());
 create policy "gallery_insert_own" on public.gallery_posts for insert with check (user_id = auth.uid());
 create policy "gallery_update_own" on public.gallery_posts for update using (user_id = auth.uid());
@@ -94,16 +102,23 @@ create policy "teachers_all_gallery" on public.gallery_posts for all using (
 );
 
 -- items: 모두 읽기, 수정은 교사만 (관리용)
+drop policy if exists "items_select_all" on public.items;
+drop policy if exists "items_manage_teacher" on public.items;
 create policy "items_select_all" on public.items for select using (true);
 create policy "items_manage_teacher" on public.items for all using (
   exists (select 1 from public.users u where u.id = auth.uid() and u.role = 'teacher')
 );
 
 -- user_inventory: 본인만
+drop policy if exists "inventory_select_own" on public.user_inventory;
+drop policy if exists "inventory_insert_own" on public.user_inventory;
 create policy "inventory_select_own" on public.user_inventory for select using (user_id = auth.uid());
 create policy "inventory_insert_own" on public.user_inventory for insert with check (user_id = auth.uid());
 
 -- classes: 학급 조회는 모두 허용(코드로 검색), 생성/수정은 교사만
+drop policy if exists "classes_select_all" on public.classes;
+drop policy if exists "classes_insert_teacher" on public.classes;
+drop policy if exists "classes_update_teacher" on public.classes;
 create policy "classes_select_all" on public.classes for select using (true);
 create policy "classes_insert_teacher" on public.classes for insert with check (
   exists (select 1 from public.users u where u.id = auth.uid() and u.role = 'teacher')
