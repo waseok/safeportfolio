@@ -10,6 +10,15 @@ const ITEM_TYPES = [
   { value: "etc", label: "기타" },
 ];
 
+const PRESET_ITEMS = [
+  { name: "🍬 사탕", type: "etc", price: 2 },
+  { name: "✏️ 연필", type: "etc", price: 3 },
+  { name: "📒 안전노트", type: "etc", price: 4 },
+  { name: "🪖 안전모", type: "avatar", price: 8 },
+  { name: "🦺 안전조끼", type: "avatar", price: 10 },
+  { name: "🏅 안전 배지", type: "badge", price: 6 },
+];
+
 type ItemRow = {
   id: string;
   name: string;
@@ -32,6 +41,7 @@ export function AdminItemsClient({
   const [imageUrl, setImageUrl] = useState("");
   const [addError, setAddError] = useState<string | null>(null);
   const [addLoading, setAddLoading] = useState(false);
+  const [presetLoading, setPresetLoading] = useState(false);
 
   const [editing, setEditing] = useState<ItemRow | null>(null);
   const [editName, setEditName] = useState("");
@@ -77,6 +87,35 @@ export function AdminItemsClient({
       setAddError(err instanceof Error ? err.message : "등록 중 오류");
     } finally {
       setAddLoading(false);
+    }
+  }
+
+  async function handleAddPresetItems() {
+    setAddError(null);
+    setPresetLoading(true);
+    try {
+      const existingNames = new Set(items.map((i) => i.name));
+      const targets = PRESET_ITEMS.filter((i) => !existingNames.has(i.name));
+      for (const item of targets) {
+        const res = await fetch("/api/admin/items", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: item.name,
+            type: item.type,
+            price: item.price,
+            image_url: null,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "기본 상품 추가 실패");
+        setItems((prev) => [...prev, data.item]);
+      }
+      router.refresh();
+    } catch (err) {
+      setAddError(err instanceof Error ? err.message : "기본 상품 추가 중 오류");
+    } finally {
+      setPresetLoading(false);
     }
   }
 
@@ -130,6 +169,16 @@ export function AdminItemsClient({
     <>
       <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <h2 className="mb-3 text-sm font-semibold text-slate-800">새 아이템 등록</h2>
+        <div className="mb-3">
+          <button
+            type="button"
+            onClick={handleAddPresetItems}
+            disabled={presetLoading}
+            className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-50"
+          >
+            {presetLoading ? "기본 상품 추가 중…" : "기본 상품 자동 추가 (사탕·연필 등)"}
+          </button>
+        </div>
         <form onSubmit={handleAdd} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <input
             type="text"

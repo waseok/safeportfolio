@@ -20,34 +20,58 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { grade, classNumber, name } = body as {
+    const { grade, classNumber, name, code } = body as {
       grade: number | null;
       classNumber: number | null;
       name: string | null;
+      code?: string | null;
     };
 
     const supabase = createServiceClient();
 
-    // 4자리 숫자 코드 생성 (중복 방지)
-    let code: string | null = null;
-    for (let i = 0; i < 10; i++) {
-      const num = Math.floor(1000 + Math.random() * 9000);
-      const candidate = String(num);
+    const customCode = typeof code === "string" ? code.trim() : "";
+    let classCode: string | null = null;
+
+    if (customCode) {
+      if (!/^\d{4}$/.test(customCode)) {
+        return NextResponse.json(
+          { error: "학급코드는 숫자 4자리로 입력해주세요." },
+          { status: 400 }
+        );
+      }
       const { data: exists } = await supabase
         .from("classes")
         .select("id")
-        .eq("code", candidate)
+        .eq("code", customCode)
         .maybeSingle();
-      if (!exists) {
-        code = candidate;
-        break;
+      if (exists) {
+        return NextResponse.json(
+          { error: "이미 사용 중인 학급코드입니다." },
+          { status: 409 }
+        );
       }
-    }
-    if (!code) {
-      return NextResponse.json(
-        { error: "코드를 생성할 수 없습니다. 잠시 후 다시 시도해주세요." },
-        { status: 500 }
-      );
+      classCode = customCode;
+    } else {
+      // 4자리 숫자 코드 자동 생성 (중복 방지)
+      for (let i = 0; i < 10; i++) {
+        const num = Math.floor(1000 + Math.random() * 9000);
+        const candidate = String(num);
+        const { data: exists } = await supabase
+          .from("classes")
+          .select("id")
+          .eq("code", candidate)
+          .maybeSingle();
+        if (!exists) {
+          classCode = candidate;
+          break;
+        }
+      }
+      if (!classCode) {
+        return NextResponse.json(
+          { error: "코드를 생성할 수 없습니다. 잠시 후 다시 시도해주세요." },
+          { status: 500 }
+        );
+      }
     }
 
     const { data, error } = await supabase
@@ -57,7 +81,7 @@ export async function POST(request: Request) {
         grade,
         class_number: classNumber,
         name,
-        code,
+        code: classCode,
       })
       .select("id, code")
       .single();

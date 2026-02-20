@@ -1,7 +1,17 @@
--- 샘플 아이템 (선택) - SQL Editor에서 schema.sql 실행 후 실행
-insert into public.items (name, type, price, image_url, is_active) values
-  ('황금 헬멧', 'avatar', 5, null, true),
-  ('슈퍼 히어로 망토', 'avatar', 10, null, true),
-  ('안전 요원 뱃지', 'badge', 3, null, true),
-  ('빛나는 안전 조끼', 'avatar', 8, null, true),
-  ('용감한 탐험가 모자', 'avatar', 6, null, true);
+-- 기본 상점 아이템 (중복 방지)
+insert into public.items (name, type, price, image_url, is_active)
+select v.name, v.type, v.price, v.image_url, true
+from (
+  values
+    ('🍬 사탕', 'etc', 2, null),
+    ('✏️ 연필', 'etc', 3, null),
+    ('📒 안전노트', 'etc', 4, null),
+    ('🪖 안전모', 'avatar', 8, null),
+    ('🦺 안전조끼', 'avatar', 10, null),
+    ('🏅 안전 배지', 'badge', 6, null),
+    ('🧤 보호장갑', 'avatar', 7, null),
+    ('🚨 비상벨 스티커', 'badge', 5, null)
+) as v(name, type, price, image_url)
+where not exists (
+  select 1 from public.items i where i.name = v.name
+);

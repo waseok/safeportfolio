@@ -7,6 +7,7 @@ export function CreateClassForm() {
   const [grade, setGrade] = useState("");
   const [classNumber, setClassNumber] = useState("");
   const [name, setName] = useState("");
+  const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -23,6 +24,7 @@ export function CreateClassForm() {
           grade: grade ? parseInt(grade, 10) : null,
           classNumber: classNumber ? parseInt(classNumber, 10) : null,
           name: name.trim() || null,
+          code: code.trim() ? code.replace(/\D/g, "").slice(0, 4) : null,
         }),
       });
       const data = await res.json();
@@ -32,6 +34,7 @@ export function CreateClassForm() {
       setGrade("");
       setClassNumber("");
       setName("");
+      setCode("");
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "학급 생성 중 오류가 발생했습니다.");
@@ -48,7 +51,7 @@ export function CreateClassForm() {
       <h2 className="mb-3 text-sm font-semibold text-slate-800">
         새 학급 만들기
       </h2>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-4">
         <input
           type="number"
           min={1}
@@ -72,6 +75,15 @@ export function CreateClassForm() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none sm:col-span-1"
+        />
+        <input
+          type="text"
+          inputMode="numeric"
+          maxLength={4}
+          placeholder="학급코드 4자리 (선택)"
+          value={code}
+          onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 4))}
+          className="rounded-lg border border-slate-200 px-3 py-2 text-sm tracking-[0.25em] focus:border-amber-500 focus:outline-none"
         />
       </div>
       {error && (

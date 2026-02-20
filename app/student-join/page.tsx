@@ -13,6 +13,7 @@ function explainDbError(message: string): string {
 
 export default function StudentJoinPage() {
   const [code, setCode] = useState("");
+  const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -24,8 +25,14 @@ export default function StudentJoinPage() {
     const supabase = createClient();
 
     const classCode = code.trim().replace(/\D/g, "").slice(0, 4);
+    const displayName = name.trim();
     if (classCode.length !== 4) {
       setError("학급코드는 4자리 숫자로 입력해주세요.");
+      setLoading(false);
+      return;
+    }
+    if (!displayName) {
+      setError("이름을 입력해주세요.");
       setLoading(false);
       return;
     }
@@ -49,7 +56,6 @@ export default function StudentJoinPage() {
       .eq("class_id", klass.id)
       .eq("role", "student");
     const studentNum = (count ?? 0) + 1;
-    const displayName = `학생 ${studentNum}`;
 
     const email = `student-${klass.id}-${Date.now()}@safe.local`;
     const password = "123456";
@@ -98,7 +104,9 @@ export default function StudentJoinPage() {
           학생 입장
         </h1>
         <p className="mb-6 text-center text-sm text-amber-800/80">
-          선생님이 알려준 <strong>학급코드 4자리</strong>만 입력하세요.
+          선생님이 알려준 <strong>학급코드 4자리</strong>와
+          <br />
+          내 <strong>이름</strong>을 입력하세요.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
@@ -109,6 +117,14 @@ export default function StudentJoinPage() {
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 4))}
             className="rounded-lg border border-amber-200 px-4 py-2 text-center text-lg tracking-[0.4em] focus:border-amber-500 focus:outline-none"
+            required
+          />
+          <input
+            type="text"
+            placeholder="이름"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="rounded-lg border border-amber-200 px-4 py-2 focus:border-amber-500 focus:outline-none"
             required
           />
           {error && (
