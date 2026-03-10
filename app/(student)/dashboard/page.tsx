@@ -1,138 +1,181 @@
 import { getCurrentUser } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import Image from "next/image";
+
+const SAFETY_TIPS = [
+  { emoji: "🚦", title: "교통안전", tip: "횡단보도에서 초록불 확인 후 건너요!" },
+  { emoji: "🪖", title: "보호장비", tip: "자전거 탈 때 헬멧은 필수예요!" },
+  { emoji: "🧯", title: "화재안전", tip: "불 근처에서 장난치지 않아요!" },
+  { emoji: "🏊", title: "물놀이안전", tip: "물놀이할 때 구명조끼를 입어요!" },
+];
+
+const LEVEL_TITLES = ["안전 새싹", "안전 씨앗", "안전 꽃봉오리", "안전 꽃", "안전 나무", "안전 숲", "안전 수호자", "안전 영웅", "안전 챔피언", "안전 레전드"];
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) return null;
 
-  return (
-    <main className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-emerald-50 px-4 py-8">
-      <div className="mx-auto flex max-w-5xl flex-col gap-8">
-        {/* 상단 인사 + 안전 슬로건 */}
-        <section className="flex flex-col gap-4 rounded-3xl bg-gradient-to-r from-sky-500 to-emerald-500 p-6 text-white shadow-lg sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-100">
-              SAFE DASHBOARD
-            </p>
-            <h1 className="mt-1 text-2xl font-bold sm:text-3xl">
-              안녕하세요, {user.name}님
-            </h1>
-            <p className="mt-2 text-sm text-sky-50/90">
-              오늘도 <span className="font-semibold">안전 수호자</span>로서의 하루를
-              기록해 볼까요?
-            </p>
-          </div>
-          <div className="mt-2 flex flex-col rounded-2xl bg-white/10 p-4 text-sm sm:mt-0">
-            <span className="text-xs font-medium text-sky-100">오늘의 다짐</span>
-            <span className="mt-1 text-sm font-semibold">
-              &quot;내 안전, 친구의 안전, 우리가 함께 지켜요&quot;
-            </span>
-          </div>
-        </section>
+  const supabase = await createClient();
+  const { data: recentPosts } = await supabase
+    .from("gallery_posts")
+    .select("id, image_url, category, status, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(3);
 
-        {/* 포인트 카드 */}
-        <section className="grid gap-4 md:grid-cols-[1.4fr,1fr]">
-          <div className="relative overflow-hidden rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm">
-            <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-emerald-50" />
-            <div className="relative flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-emerald-700">
-                  보유 안전 포인트
+  const { data: classInfo } = user.class_id
+    ? await supabase.from("classes").select("name, grade, class_number").eq("id", user.class_id).single()
+    : { data: null };
+
+  const POINTS_PER_LEVEL = 10;
+  const level = Math.floor(user.total_points / POINTS_PER_LEVEL) + 1;
+  const levelProgress = ((user.total_points % POINTS_PER_LEVEL) / POINTS_PER_LEVEL) * 100;
+  const levelTitle = LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
+
+  return (
+    <main className="space-y-6">
+      {/* 히어로 섹션 */}
+      <section className="relative overflow-hidden rounded-3xl p-6 text-white shadow-xl"
+        style={{background: "linear-gradient(135deg, #ff6b2b 0%, #ff8c42 50%, #ffd700 100%)"}}>
+        <div className="absolute right-0 top-0 text-[120px] opacity-10 select-none">🛡️</div>
+        <div className="relative">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-bold text-orange-100 uppercase tracking-widest">안전 수호자</p>
+              <h1 className="mt-1 text-3xl font-black">
+                안녕하세요, {user.name}님! 👋
+              </h1>
+              {classInfo && (
+                <p className="mt-1 text-orange-100 text-sm">
+                  🏫 {classInfo.grade}학년 {classInfo.class_number}반
                 </p>
-                <p className="mt-2 text-4xl font-extrabold text-emerald-600">
-                  {user.current_points}
-                  <span className="ml-1 text-lg font-semibold">P</span>
-                </p>
-                <p className="mt-2 text-xs text-emerald-800/80">
-                  누적 {user.total_points} P · 안전 습관이 쌓일수록 레벨이 올라가요.
-                </p>
-              </div>
-              <div className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-b from-amber-50 to-emerald-50 px-4 py-3 text-xs text-emerald-800">
-                <span className="text-3xl">🦺</span>
-                <span className="font-semibold">오늘도 안전하게</span>
-                <span className="text-[11px] text-emerald-700/80">
-                  횡단보도, 계단, 실내 활동까지
-                  <br />
-                  안전 수칙을 잘 지켜보세요.
-                </span>
-              </div>
+              )}
+              <p className="mt-2 text-orange-50 text-sm">
+                오늘도 안전한 하루를 만들어요!
+              </p>
+            </div>
+            <div className="rounded-2xl bg-white/20 p-4 text-center backdrop-blur-sm border border-white/30 min-w-[120px]">
+              <p className="text-xs font-bold text-orange-100">현재 포인트</p>
+              <p className="text-4xl font-black text-white">{user.current_points}</p>
+              <p className="text-xs text-orange-200">P</p>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 rounded-3xl border border-sky-100 bg-sky-50/60 p-4 text-xs text-sky-900 shadow-sm">
-            <p className="text-sm font-semibold">오늘 할 수 있는 안전 미션</p>
-            <ul className="space-y-1.5">
-              <li>✅ 교실·복도에서 뛰지 않기</li>
-              <li>✅ 계단 오르내릴 때 손잡이 잡기</li>
-              <li>✅ 실험·실습 전 보호 장비 제대로 착용하기</li>
-              <li>✅ 친구가 위험한 행동을 할 때 부드럽게 말리기</li>
-            </ul>
-            <p className="mt-1 text-[11px] text-sky-800/80">
-              미션을 실천하고 인증샷을 올리면 선생님이 확인 후 포인트를 더해 주어요.
-            </p>
+          {/* 레벨 바 */}
+          <div className="mt-4">
+            <div className="flex justify-between text-xs text-orange-100 mb-1">
+              <span>🏅 {levelTitle} (Lv.{level})</span>
+              <span>누적 {user.total_points}P</span>
+            </div>
+            <div className="h-3 rounded-full bg-white/30 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-white transition-all duration-700"
+                style={{width: `${Math.min(100, levelProgress)}%`}}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 안전 미션 카드 */}
+      <section className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-sky-100 border border-blue-200 p-5 shadow-sm">
+          <h2 className="text-base font-black text-blue-900 mb-3">✅ 오늘의 안전 미션</h2>
+          <ul className="space-y-2 text-sm text-blue-800">
+            <li className="flex items-start gap-2">
+              <span className="text-green-500 font-bold mt-0.5">✓</span>
+              교실·복도에서 뛰지 않기
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-green-500 font-bold mt-0.5">✓</span>
+              계단 오르내릴 때 손잡이 잡기
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-green-500 font-bold mt-0.5">✓</span>
+              위험한 친구에게 부드럽게 말리기
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-green-500 font-bold mt-0.5">✓</span>
+              횡단보도에서 스마트폰 넣기
+            </li>
+          </ul>
+          <p className="mt-3 text-xs text-blue-600 bg-blue-100 rounded-lg p-2">
+            💡 미션 실천 후 인증샷을 올리면 포인트를 받아요!
+          </p>
+        </div>
+
+        <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-green-100 border border-emerald-200 p-5 shadow-sm">
+          <h2 className="text-base font-black text-emerald-900 mb-3">📚 7대 안전 주제</h2>
+          <div className="grid grid-cols-2 gap-1.5 text-xs">
+            {["생활안전 🏠", "교통안전 🚦", "폭력예방 🤝", "사이버예방 💻", "재난안전 🌊", "직업안전 ⚙️", "응급처치 🏥"].map((t) => (
+              <span key={t} className="rounded-lg bg-white/70 px-2 py-1.5 text-emerald-800 font-medium text-center border border-emerald-200">
+                {t}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 메뉴 그리드 */}
+      <section>
+        <h2 className="mb-3 text-lg font-black text-gray-800">🗂️ 메뉴</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { href: "/gallery", emoji: "🖼️", label: "안전 갤러리", desc: "내 활동과 우리반 기록 보기", color: "from-purple-50 to-violet-100 border-purple-200 hover:border-purple-400" },
+            { href: "/upload", emoji: "📷", label: "인증샷 올리기", desc: "안전 활동 사진 올리고 포인트 받기", color: "from-orange-50 to-amber-100 border-orange-200 hover:border-orange-400" },
+            { href: "/shop", emoji: "🏪", label: "안전 상점", desc: "포인트로 아바타·뱃지 구매", color: "from-pink-50 to-rose-100 border-pink-200 hover:border-pink-400" },
+            { href: "/mypage", emoji: "🧑‍🚒", label: "나의 프로필", desc: "레벨·아이템·장착 상태 확인", color: "from-sky-50 to-blue-100 border-sky-200 hover:border-sky-400" },
+          ].map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`card-hover flex flex-col rounded-2xl border bg-gradient-to-br p-4 shadow-sm transition ${item.color}`}
+            >
+              <span className="text-3xl mb-2">{item.emoji}</span>
+              <h3 className="text-sm font-black text-gray-900">{item.label}</h3>
+              <p className="mt-1 text-xs text-gray-600">{item.desc}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* 안전 팁 */}
+      <section>
+        <h2 className="mb-3 text-lg font-black text-gray-800">💡 안전 상식 한 줄</h2>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {SAFETY_TIPS.map((tip) => (
+            <div key={tip.title} className="rounded-xl bg-white border border-gray-100 p-3 shadow-sm text-center">
+              <span className="text-2xl">{tip.emoji}</span>
+              <p className="mt-1 text-xs font-bold text-gray-700">{tip.title}</p>
+              <p className="mt-1 text-xs text-gray-500">{tip.tip}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 최근 업로드 */}
+      {recentPosts && recentPosts.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-black text-gray-800">🕐 최근 업로드</h2>
+            <Link href="/gallery" className="text-sm text-orange-600 font-semibold hover:underline">전체 보기 →</Link>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {recentPosts.map((post) => (
+              <div key={post.id} className="relative rounded-xl overflow-hidden border border-gray-200 shadow-sm aspect-video">
+                <Image src={post.image_url} alt="" fill className="object-cover" unoptimized />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${post.status === "approved" ? "bg-green-400 text-green-900" : post.status === "pending" ? "bg-yellow-400 text-yellow-900" : "bg-gray-400 text-gray-900"}`}>
+                    {post.status === "approved" ? "✓ 승인" : post.status === "pending" ? "⏳ 대기" : "반려"}
+                  </span>
+                  <p className="text-xs text-white mt-1">{post.category ?? "-"}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
-
-        {/* 주요 메뉴 그리드 */}
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-slate-800 sm:text-base">
-            안전 활동 관리
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Link
-              href="/gallery"
-              className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-400 hover:shadow-md"
-            >
-              <span className="text-2xl">📚</span>
-              <h3 className="mt-2 text-sm font-semibold text-slate-900">
-                안전 갤러리
-              </h3>
-              <p className="mt-1 text-xs text-slate-600">
-                내가 실천한 안전 활동과 선생님 피드백을 한눈에 보기.
-              </p>
-            </Link>
-
-            <Link
-              href="/upload"
-              className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-400 hover:shadow-md"
-            >
-              <span className="text-2xl">📷</span>
-              <h3 className="mt-2 text-sm font-semibold text-slate-900">
-                인증샷 올리기
-              </h3>
-              <p className="mt-1 text-xs text-slate-600">
-                오늘 실천한 안전 행동을 사진으로 남기고 포인트 받기.
-              </p>
-            </Link>
-
-            <Link
-              href="/shop"
-              className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-400 hover:shadow-md"
-            >
-              <span className="text-2xl">🏪</span>
-              <h3 className="mt-2 text-sm font-semibold text-slate-900">
-                안전 상점
-              </h3>
-              <p className="mt-1 text-xs text-slate-600">
-                모은 포인트로 아바타·뱃지 등 보상을 선택해 보세요.
-              </p>
-            </Link>
-
-            <Link
-              href="/mypage"
-              className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-400 hover:shadow-md"
-            >
-              <span className="text-2xl">🧑‍🚒</span>
-              <h3 className="mt-2 text-sm font-semibold text-slate-900">
-                나의 안전 프로필
-              </h3>
-              <p className="mt-1 text-xs text-slate-600">
-                레벨, 보유 아이템, 장착 상태를 확인하고 꾸며 보세요.
-              </p>
-            </Link>
-          </div>
-        </section>
-      </div>
+      )}
     </main>
   );
 }

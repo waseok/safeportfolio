@@ -13,6 +13,7 @@ export interface AppUser {
   current_points: number;
   total_points: number;
   equipped_avatar_id: string | null;
+  class_id: string | null;
 }
 
 /** 현재 로그인 사용자 + public.users 프로필 반환. 없으면 null */

@@ -1,95 +1,109 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth";
 import Link from "next/link";
-import Image from "next/image";
-import { FeedbackBubble } from "@/components/feedback/feedback-bubble";
+import { GalleryTabs } from "./gallery-tabs";
 
 export default async function GalleryPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) return null;
 
-  const { data: posts } = await supabase
+  // 내 게시물
+  const { data: myPosts } = await supabase
     .from("gallery_posts")
     .select("id, image_url, category, description, status, teacher_feedback, awarded_points, created_at, read_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  const unreadCount = (posts ?? []).filter(
+  // 우리반 전체 승인된 게시물 (class_id 있을 때)
+  let classPosts: Array<{
+    id: string; image_url: string; category: string | null; description: string | null;
+    created_at: string; user_name: string; awarded_points: number;
+  }> = [];
+
+  if (user.class_id) {
+    const { data: classmates } = await supabase
+      .from("users")
+      .select("id, name")
+      .eq("class_id", user.class_id);
+
+    if (classmates && classmates.length > 0) {
+      const classmateIds = classmates.map((u) => u.id);
+      const { data: rawPosts } = await supabase
+        .from("gallery_posts")
+        .select("id, image_url, category, description, created_at, user_id, awarded_points")
+        .in("user_id", classmateIds)
+        .eq("status", "approved")
+        .order("created_at", { ascending: false })
+        .limit(60);
+
+      const nameById = new Map(classmates.map((u) => [u.id, u.name]));
+      classPosts = (rawPosts ?? []).map((p) => ({
+        id: p.id,
+        image_url: p.image_url,
+        category: p.category,
+        description: p.description,
+        created_at: p.created_at,
+        user_name: nameById.get(p.user_id) ?? "-",
+        awarded_points: p.awarded_points ?? 0,
+      }));
+    }
+  }
+
+  const unreadCount = (myPosts ?? []).filter(
     (p) => p.status === "approved" && !p.read_at
   ).length;
 
+  const approvedCount = (myPosts ?? []).filter((p) => p.status === "approved").length;
+  const pendingCount = (myPosts ?? []).filter((p) => p.status === "pending").length;
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-amber-900">내 갤러리</h1>
-        {unreadCount > 0 && (
+      {/* 헤더 */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black text-gray-900">🖼️ 안전 갤러리</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            내 활동 {myPosts?.length ?? 0}건 · 승인 {approvedCount}건 · 대기 {pendingCount}건
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {unreadCount > 0 && (
+            <span className="rounded-full bg-orange-500 px-3 py-1 text-sm font-bold text-white animate-pulse">
+              🔔 새 피드백 {unreadCount}건
+            </span>
+          )}
           <Link
-            href="/gallery#unread"
-            className="rounded-full bg-amber-500 px-3 py-1 text-sm font-medium text-white"
+            href="/upload"
+            className="rounded-full px-4 py-2 text-sm font-bold text-white shadow-md transition hover:opacity-90"
+            style={{background: "linear-gradient(135deg, #ff6b2b, #ffd700)"}}
           >
-            선생님이 피드백을 남겼어요! (+{unreadCount}건)
+            📷 인증샷 올리기
           </Link>
-        )}
-        <Link
-          href="/upload"
-          className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600"
-        >
-          업로드
-        </Link>
+        </div>
       </div>
 
-      {!posts?.length ? (
-        <p className="text-amber-800/80">아직 올린 인증샷이 없어요.</p>
-      ) : (
-        <ul className="grid gap-6 sm:grid-cols-2">
-          {posts.map((post) => (
-            <li
-              key={post.id}
-              id={post.status === "approved" && !post.read_at ? "unread" : undefined}
-              className="rounded-2xl border border-amber-200 bg-white p-4 shadow"
-            >
-              <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-amber-100">
-                <Image
-                  src={post.image_url}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-                <span
-                  className={`absolute right-2 top-2 rounded-full px-2 py-0.5 text-xs font-medium ${
-                    post.status === "pending"
-                      ? "bg-amber-200 text-amber-900"
-                      : post.status === "approved"
-                        ? "bg-green-200 text-green-900"
-                        : "bg-slate-200 text-slate-700"
-                  }`}
-                >
-                  {post.status === "pending"
-                    ? "심사 대기"
-                    : post.status === "approved"
-                      ? "승인"
-                      : "반려"}
-                </span>
-              </div>
-              <p className="mt-2 text-sm text-amber-800">{post.category ?? "-"}</p>
-              <p className="line-clamp-2 text-sm text-amber-700/90">
-                {post.description ?? "-"}
-              </p>
-              {post.status === "approved" && (
-                <FeedbackBubble
-                  feedback={post.teacher_feedback}
-                  points={post.awarded_points}
-                  postId={post.id}
-                  readAt={post.read_at}
-                />
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* 통계 카드 */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-2xl bg-gradient-to-br from-green-50 to-emerald-100 border border-emerald-200 p-4 text-center shadow-sm">
+          <p className="text-2xl font-black text-emerald-600">{approvedCount}</p>
+          <p className="text-xs font-semibold text-emerald-700 mt-1">✅ 승인됨</p>
+        </div>
+        <div className="rounded-2xl bg-gradient-to-br from-yellow-50 to-amber-100 border border-amber-200 p-4 text-center shadow-sm">
+          <p className="text-2xl font-black text-amber-600">{pendingCount}</p>
+          <p className="text-xs font-semibold text-amber-700 mt-1">⏳ 심사중</p>
+        </div>
+        <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-sky-100 border border-sky-200 p-4 text-center shadow-sm">
+          <p className="text-2xl font-black text-sky-600">{classPosts.length}</p>
+          <p className="text-xs font-semibold text-sky-700 mt-1">👥 우리반 전체</p>
+        </div>
+      </div>
+
+      {/* 탭 */}
+      <GalleryTabs
+        myPosts={myPosts ?? []}
+        classPosts={classPosts}
+      />
     </div>
   );
 }
