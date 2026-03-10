@@ -1,10 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { AdminAllPostsTabs } from "./admin-all-posts-tabs";
 
 export default async function AdminPage() {
-  const supabase = await createClient();
+  // Service client: RLS 우회 → 모든 학생 게시물 + 이름 조회 가능
+  const supabase = createServiceClient();
 
-  // 모든 게시물 가져오기 (pending + approved + rejected)
   const { data: allPosts } = await supabase
     .from("gallery_posts")
     .select("id, image_url, category, description, status, teacher_feedback, awarded_points, created_at, user_id")
@@ -42,7 +42,6 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-6">
-      {/* 헤더 */}
       <div className="rounded-2xl p-5 text-white shadow-lg"
         style={{background: "linear-gradient(135deg, #1e3a5f, #2563eb)"}}>
         <h1 className="text-2xl font-black">📋 안전 활동 인증 관리</h1>

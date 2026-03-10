@@ -1,10 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
 import Link from "next/link";
 import { GalleryTabs } from "./gallery-tabs";
 
 export default async function GalleryPage() {
-  const supabase = await createClient();
+  // Service client: RLS 우회 → 우리반 게시물 조회 가능
+  const supabase = createServiceClient();
   const user = await getCurrentUser();
   if (!user) return null;
 
@@ -15,7 +16,7 @@ export default async function GalleryPage() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  // 우리반 전체 승인된 게시물 (class_id 있을 때)
+  // 우리반 전체 승인된 게시물 (service client로 RLS 우회)
   let classPosts: Array<{
     id: string; image_url: string; category: string | null; description: string | null;
     created_at: string; user_name: string; awarded_points: number;
