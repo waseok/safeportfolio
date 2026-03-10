@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fffdf6;
-  --foreground: #1f2937;
+  --background: #fffbf0;
+  --foreground: #1a1a2e;
+  --safe-orange: #ff6b2b;
+  --safe-yellow: #ffd700;
+  --safe-green: #2ecc71;
+  --safe-blue: #3498db;
 }
 
 @theme inline {
@@ -14,18 +18,78 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #fffdf6;
-    --foreground: #1f2937;
+    --background: #fffbf0;
+    --foreground: #1a1a2e;
   }
 }
 
 body {
   background:
-    radial-gradient(circle at 10% 0%, #ffe9a8 0%, transparent 25%),
-    radial-gradient(circle at 90% 0%, #bde8ff 0%, transparent 30%),
-    linear-gradient(180deg, #fffdf6 0%, #fff8e1 100%);
+    radial-gradient(circle at 15% 10%, #fff3cd 0%, transparent 30%),
+    radial-gradient(circle at 85% 5%, #d4edff 0%, transparent 30%),
+    radial-gradient(circle at 50% 90%, #d5f5e3 0%, transparent 30%),
+    linear-gradient(180deg, #fffbf0 0%, #fff8e1 100%);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
-  font-size: 18px;
-  line-height: 1.6;
+  font-family: var(--font-geist-sans), 'Noto Sans KR', Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+/* Fun bounce animation for icons */
+@keyframes bounce-soft {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 43, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(255, 107, 43, 0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.animate-bounce-soft {
+  animation: bounce-soft 2s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+/* Safety badge style */
+.safety-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #fff8e1;
+}
+::-webkit-scrollbar-thumb {
+  background: #fbbf24;
+  border-radius: 3px;
 }
