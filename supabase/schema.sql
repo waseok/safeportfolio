@@ -89,12 +89,23 @@ create policy "users_select_own" on public.users for select using (auth.uid() = 
 create policy "users_update_own" on public.users for update using (auth.uid() = id);
 create policy "users_insert_own" on public.users for insert with check (auth.uid() = id);
 
--- gallery_posts: 학생은 본인 글만, 교사는 전체
+-- gallery_posts: 학생은 본인 글 + 같은 학급의 승인된 글, 교사는 전체
 drop policy if exists "gallery_select_own" on public.gallery_posts;
+drop policy if exists "gallery_select_class_approved" on public.gallery_posts;
 drop policy if exists "gallery_insert_own" on public.gallery_posts;
 drop policy if exists "gallery_update_own" on public.gallery_posts;
 drop policy if exists "teachers_all_gallery" on public.gallery_posts;
+-- 본인 글 조회
 create policy "gallery_select_own" on public.gallery_posts for select using (user_id = auth.uid());
+-- 같은 학급의 승인된 글 조회 (우리반 갤러리용)
+create policy "gallery_select_class_approved" on public.gallery_posts for select using (
+  status = 'approved' and
+  user_id in (
+    select u2.id from public.users u2
+    where u2.class_id is not null
+      and u2.class_id = (select u1.class_id from public.users u1 where u1.id = auth.uid())
+  )
+);
 create policy "gallery_insert_own" on public.gallery_posts for insert with check (user_id = auth.uid());
 create policy "gallery_update_own" on public.gallery_posts for update using (user_id = auth.uid());
 create policy "teachers_all_gallery" on public.gallery_posts for all using (
