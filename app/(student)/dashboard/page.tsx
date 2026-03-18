@@ -36,41 +36,46 @@ export default async function DashboardPage() {
   return (
     <main className="space-y-6">
       {/* 히어로 섹션 */}
-      <section className="relative overflow-hidden rounded-3xl p-6 text-white shadow-xl"
+      <section className="relative overflow-hidden rounded-3xl shadow-xl"
         style={{background: "linear-gradient(135deg, #ff6b2b 0%, #ff8c42 50%, #ffd700 100%)"}}>
-        <div className="absolute right-0 top-0 text-[120px] opacity-10 select-none">🛡️</div>
-        <div className="relative">
+        <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+        <div className="absolute right-0 top-0 text-[130px] opacity-10 select-none pointer-events-none">🛡️</div>
+        <div className="relative p-6 text-white">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-bold text-orange-100 uppercase tracking-widest">안전 수호자</p>
-              <h1 className="mt-1 text-3xl font-black">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-black/20 px-3 py-1 mb-2 border border-white/20">
+                <span className="text-xs font-bold text-white tracking-widest">🛡️ 안전 수호자</span>
+              </div>
+              <h1 className="text-2xl font-black text-white drop-shadow-sm">
                 안녕하세요, {user.name}님! 👋
               </h1>
               {classInfo && (
-                <p className="mt-1 text-orange-100 text-sm">
-                  🏫 {classInfo.grade}학년 {classInfo.class_number}반
-                </p>
+                <div className="mt-1.5">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/25 px-2.5 py-0.5 text-sm font-semibold text-white border border-white/30">
+                    🏫 {classInfo.grade}학년 {classInfo.class_number}반
+                  </span>
+                </div>
               )}
-              <p className="mt-2 text-orange-50 text-sm">
+              <p className="mt-2 text-sm text-white/90 font-medium">
                 오늘도 안전한 하루를 만들어요!
               </p>
             </div>
-            <div className="rounded-2xl bg-white/20 p-4 text-center backdrop-blur-sm border border-white/30 min-w-[120px]">
-              <p className="text-xs font-bold text-orange-100">현재 포인트</p>
+            <div className="rounded-2xl bg-white/25 p-4 text-center backdrop-blur-sm border border-white/40 min-w-[110px] shadow-lg">
+              <p className="text-xs font-bold text-white/80">현재 포인트</p>
               <p className="text-4xl font-black text-white">{user.current_points}</p>
-              <p className="text-xs text-orange-200">P</p>
+              <p className="text-xs text-white/70 font-semibold">P</p>
             </div>
           </div>
 
           {/* 레벨 바 */}
-          <div className="mt-4">
-            <div className="flex justify-between text-xs text-orange-100 mb-1">
-              <span>🏅 {levelTitle} (Lv.{level})</span>
-              <span>누적 {user.total_points}P</span>
+          <div className="mt-4 rounded-2xl bg-black/15 px-4 py-3">
+            <div className="flex justify-between text-xs font-semibold mb-2">
+              <span className="text-white">🏅 {levelTitle} (Lv.{level})</span>
+              <span className="text-white/80">누적 {user.total_points}P</span>
             </div>
-            <div className="h-3 rounded-full bg-white/30 overflow-hidden">
+            <div className="h-2.5 rounded-full bg-white/30 overflow-hidden">
               <div
-                className="h-full rounded-full bg-white transition-all duration-700"
+                className="h-full rounded-full bg-white transition-all duration-700 shadow-sm"
                 style={{width: `${Math.min(100, levelProgress)}%`}}
               />
             </div>
@@ -120,7 +125,20 @@ export default async function DashboardPage() {
       {/* 메뉴 그리드 */}
       <section>
         <h2 className="mb-3 text-lg font-black text-gray-800">🗂️ 메뉴</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {/* 함께 만드는 안전과제 배너 */}
+        <Link href="/assignments"
+          className="flex items-center gap-4 rounded-2xl border-2 border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-100 p-4 shadow-sm hover:border-emerald-500 hover:shadow-md transition-all">
+          <div className="flex-shrink-0 rounded-2xl bg-emerald-500 p-3 text-3xl shadow-md">📝</div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-black text-emerald-900 text-base">함께 만드는 안전과제</h3>
+            <p className="text-sm text-emerald-700 mt-0.5">선생님이 출제한 안전 과제 확인 → 인증샷 제출 → 포인트 받기!</p>
+          </div>
+          <span className="flex-shrink-0 rounded-full bg-emerald-500 text-white text-xs font-bold px-3 py-1 shadow">
+            과제 보기 →
+          </span>
+        </Link>
+
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { href: "/gallery", emoji: "🖼️", label: "안전 갤러리", desc: "내 활동과 우리반 기록 보기", color: "from-purple-50 to-violet-100 border-purple-200 hover:border-purple-400" },
             { href: "/upload", emoji: "📷", label: "인증샷 올리기", desc: "안전 활동 사진 올리고 포인트 받기", color: "from-orange-50 to-amber-100 border-orange-200 hover:border-orange-400" },

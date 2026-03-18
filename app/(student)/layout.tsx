@@ -30,6 +30,9 @@ export default async function StudentLayout({
             <Link href="/gallery" className="rounded-lg px-3 py-2 text-sm font-medium text-white/90 hover:bg-white/20 hover:text-white transition-all">
               🖼️ 갤러리
             </Link>
+            <Link href="/assignments" className="rounded-lg px-3 py-2 text-sm font-medium text-white/90 hover:bg-white/20 hover:text-white transition-all">
+              📝 안전과제
+            </Link>
             <Link href="/upload" className="rounded-lg bg-white/25 px-3 py-2 text-sm font-medium text-white hover:bg-white/40 transition-all border border-white/30">
               📷 업로드
             </Link>

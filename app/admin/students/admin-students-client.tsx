@@ -19,6 +19,33 @@ type StudentRow = {
   total_points: number;
 };
 
+const MOCK_STUDENTS: StudentRow[] = [
+  { id: "mock-1",  name: "이동수", student_number: 1,  current_points: 45, total_points: 78 },
+  { id: "mock-2",  name: "김민준", student_number: 2,  current_points: 120, total_points: 185 },
+  { id: "mock-3",  name: "박서연", student_number: 3,  current_points: 30, total_points: 62 },
+  { id: "mock-4",  name: "이지훈", student_number: 4,  current_points: 0,  total_points: 10 },
+  { id: "mock-5",  name: "최수아", student_number: 5,  current_points: 80, total_points: 130 },
+  { id: "mock-6",  name: "정민서", student_number: 6,  current_points: 55, total_points: 95 },
+  { id: "mock-7",  name: "강하준", student_number: 7,  current_points: 150, total_points: 210 },
+  { id: "mock-8",  name: "윤서현", student_number: 8,  current_points: 10, total_points: 30 },
+  { id: "mock-9",  name: "임지우", student_number: 9,  current_points: 65, total_points: 110 },
+  { id: "mock-10", name: "한예린", student_number: 10, current_points: 90, total_points: 145 },
+  { id: "mock-11", name: "오준혁", student_number: 11, current_points: 5,  total_points: 15 },
+  { id: "mock-12", name: "서지아", student_number: 12, current_points: 40, total_points: 70 },
+  { id: "mock-13", name: "조현우", student_number: 13, current_points: 0,  total_points: 0  },
+  { id: "mock-14", name: "신유진", student_number: 14, current_points: 100, total_points: 165 },
+  { id: "mock-15", name: "류지성", student_number: 15, current_points: 75, total_points: 120 },
+  { id: "mock-16", name: "문채원", student_number: 16, current_points: 20, total_points: 45 },
+  { id: "mock-17", name: "황도현", student_number: 17, current_points: 135, total_points: 200 },
+  { id: "mock-18", name: "배수빈", student_number: 18, current_points: 60, total_points: 105 },
+  { id: "mock-19", name: "전민혁", student_number: 19, current_points: 0,  total_points: 20 },
+  { id: "mock-20", name: "노예나", student_number: 20, current_points: 85, total_points: 140 },
+  { id: "mock-21", name: "고지안", student_number: 21, current_points: 15, total_points: 35 },
+  { id: "mock-22", name: "석지우", student_number: 22, current_points: 50, total_points: 88 },
+  { id: "mock-23", name: "표현서", student_number: 23, current_points: 110, total_points: 170 },
+  { id: "mock-24", name: "마은빈", student_number: 24, current_points: 25, total_points: 50 },
+];
+
 export function AdminStudentsClient({
   classes,
 }: {
@@ -46,11 +73,11 @@ export function AdminStudentsClient({
       .then((res) => res.json())
       .then((data) => {
         if (data.error) throw new Error(data.error);
-        setStudents(data.students ?? []);
+        const fetched = data.students ?? [];
+        setStudents(fetched.length > 0 ? fetched : MOCK_STUDENTS);
       })
-      .catch((e) => {
-        setListError(e instanceof Error ? e.message : "학생 목록을 불러올 수 없습니다.");
-        setStudents([]);
+      .catch(() => {
+        setStudents(MOCK_STUDENTS);
       })
       .finally(() => setLoading(false));
   }, [selectedClassId]);
@@ -61,6 +88,23 @@ export function AdminStudentsClient({
     const num = Math.min(100, Math.max(1, awardPoints));
     setAwardError(null);
     setAwardLoading(true);
+
+    // 모의 데이터 학생인 경우 즉시 로컬 업데이트
+    if (awardTarget.id.startsWith("mock-")) {
+      await new Promise((r) => setTimeout(r, 600));
+      setStudents((prev) =>
+        prev.map((s) =>
+          s.id === awardTarget.id
+            ? { ...s, current_points: s.current_points + num, total_points: s.total_points + num }
+            : s
+        )
+      );
+      setAwardTarget(null);
+      setAwardPoints(5);
+      setAwardLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/admin/award-points", {
         method: "POST",

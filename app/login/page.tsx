@@ -52,8 +52,11 @@ export default function LoginPage() {
       }
       if (!uid) { setError("테스트 입장에 실패했습니다. Supabase Confirm email을 끄고 다시 시도하세요."); return; }
       const role: Role = kind === "teacher" ? "teacher" : "student";
+      const studentProfile = kind === "student"
+        ? { id: uid, role, name: "이동수", student_number: 5, grade: 1, class_number: 1, current_points: 45, total_points: 78 }
+        : { id: uid, role, name: "테스트 교사" };
       const { error: upsertUserError } = await supabase.from("users").upsert(
-        { id: uid, role, name: kind === "teacher" ? "테스트 교사" : "테스트 학생" },
+        studentProfile,
         { onConflict: "id" }
       );
       if (upsertUserError) { setError(`테스트 프로필 저장 실패: ${explainDbError(upsertUserError.message)}`); return; }
