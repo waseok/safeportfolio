@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
 /** 교사 전용. 내 학급 학생에게 포인트 직접 지급 */
@@ -11,7 +11,10 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
     }
-    const { data: profile } = await auth
+
+    // RLS 재귀 충돌 방지: 모든 DB 조회는 서비스 클라이언트로
+    const supabase = createServiceClient();
+    const { data: profile } = await supabase
       .from("users")
       .select("role")
       .eq("id", user.id)
@@ -36,7 +39,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data: student, error: studentError } = await auth
+    const { data: student, error: studentError } = await supabase
       .from("users")
       .select("id, class_id, current_points, total_points")
       .eq("id", studentId)
@@ -50,7 +53,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "학급에 소속되지 않은 학생입니다." }, { status: 400 });
     }
 
-    const { data: klass } = await auth
+    const { data: klass } = await supabase
       .from("classes")
       .select("id")
       .eq("id", student.class_id)
@@ -67,7 +70,7 @@ export async function POST(request: Request) {
     const newCurrent = (student.current_points ?? 0) + pointsNum;
     const newTotal = (student.total_points ?? 0) + pointsNum;
 
-    const { error: updateError } = await auth
+    const { error: updateError } = await supabase
       .from("users")
       .update({
         current_points: newCurrent,
