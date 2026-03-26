@@ -52,6 +52,7 @@ export function AdminAllPostsTabs({ initialPosts }: { initialPosts: Post[] }) {
       setSelected(null);
       setFeedback("");
       setPoints(2);
+      if (data.pointsWarning) setError(data.pointsWarning);
     } catch (e) {
       setError(e instanceof Error ? e.message : "승인 처리 중 오류");
     } finally {

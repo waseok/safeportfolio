@@ -73,20 +73,20 @@ export async function POST(request: Request) {
     });
 
     if (insertError) {
+      // 인벤토리 추가 실패 시 포인트 환불 시도
+      const { error: refundError } = await supabase
+        .from("users")
+        .update({ current_points: userRow.current_points })
+        .eq("id", user.id);
+      if (refundError) {
+        console.error("[purchase] 포인트 환불 실패:", refundError.message, "userId:", user.id, "item:", item.id);
+      }
       if (insertError.code === "23505") {
-        await supabase
-          .from("users")
-          .update({ current_points: userRow.current_points })
-          .eq("id", user.id);
         return NextResponse.json(
           { error: "이미 보유한 아이템입니다." },
           { status: 400 }
         );
       }
-      await supabase
-        .from("users")
-        .update({ current_points: userRow.current_points })
-        .eq("id", user.id);
       return NextResponse.json(
         { error: "구매 처리 중 오류가 났습니다." },
         { status: 500 }

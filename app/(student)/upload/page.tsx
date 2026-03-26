@@ -80,7 +80,12 @@ export default function UploadPage() {
         description: description.trim() || null,
         status: "pending",
       });
-      if (insertError) { setError(insertError.message); return; }
+      if (insertError) {
+        // DB 저장 실패 시 업로드된 파일 삭제 (고아 파일 방지)
+        await supabase.storage.from("cert-images").remove([path]);
+        setError(insertError.message);
+        return;
+      }
 
       router.push("/gallery");
       router.refresh();
