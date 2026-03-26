@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
 /** 교사만 호출 가능. 상점 아이템 생성 */
@@ -11,7 +11,10 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
     }
-    const { data: profile } = await auth
+
+    // RLS 재귀 충돌 방지: 역할 확인은 서비스 클라이언트로
+    const supabase = createServiceClient();
+    const { data: profile } = await supabase
       .from("users")
       .select("role")
       .eq("id", user.id)
@@ -51,7 +54,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data, error } = await auth
+    const { data, error } = await supabase
       .from("items")
       .insert({
         name: name.trim(),

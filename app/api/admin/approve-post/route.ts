@@ -41,13 +41,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "게시글을 찾을 수 없음" }, { status: 404 });
     }
     if (post.status !== "pending") {
-      return NextResponse.json(
-        { error: "이미 처리된 게시글입니다" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "이미 처리된 게시글입니다" }, { status: 400 });
     }
 
-    await supabase
+    // 게시글 승인 처리
+    const { error: updatePostError } = await supabase
       .from("gallery_posts")
       .update({
         status: "approved",
@@ -56,6 +54,11 @@ export async function POST(request: Request) {
       })
       .eq("id", postId);
 
+    if (updatePostError) {
+      return NextResponse.json({ error: "게시글 승인 처리에 실패했습니다." }, { status: 500 });
+    }
+
+    // 포인트 지급 (실패해도 승인 자체는 유효)
     const { data: userRow } = await supabase
       .from("users")
       .select("current_points, total_points")
@@ -63,13 +66,19 @@ export async function POST(request: Request) {
       .single();
 
     if (userRow) {
-      await supabase
+      const { error: updatePointsError } = await supabase
         .from("users")
         .update({
           current_points: userRow.current_points + awardedPoints,
           total_points: userRow.total_points + awardedPoints,
         })
         .eq("id", post.user_id);
+
+      if (updatePointsError) {
+        // 승인은 완료됐으나 포인트 지급 실패 - 로그 기록 후 경고 포함 응답
+        console.error("[approve-post] 포인트 지급 실패:", updatePointsError.message, "userId:", post.user_id);
+        return NextResponse.json({ ok: true, pointsWarning: "승인은 완료됐으나 포인트 지급에 실패했습니다. 학생 관리에서 직접 지급해주세요." });
+      }
     }
 
     return NextResponse.json({ ok: true });

@@ -10,7 +10,10 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
     }
-    const { data: profile } = await auth
+
+    // RLS 재귀 충돌 방지: 역할 확인은 서비스 클라이언트로
+    const supabase = createServiceClient();
+    const { data: profile } = await supabase
       .from("users")
       .select("role")
       .eq("id", user.id)
@@ -26,8 +29,6 @@ export async function POST(request: Request) {
       name: string | null;
       code?: string | null;
     };
-
-    const supabase = createServiceClient();
 
     const customCode = typeof code === "string" ? code.trim() : "";
     let classCode: string | null = null;
@@ -99,4 +100,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "서버 오류" }, { status: 500 });
   }
 }
-

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
 /** 교사 전용. 내 학급의 학생 목록 반환 */
@@ -19,7 +19,10 @@ export async function GET(
     if (!user) {
       return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
     }
-    const { data: profile } = await auth
+
+    // RLS 재귀 충돌 방지: 모든 DB 조회는 서비스 클라이언트로
+    const supabase = createServiceClient();
+    const { data: profile } = await supabase
       .from("users")
       .select("role")
       .eq("id", user.id)
@@ -28,7 +31,7 @@ export async function GET(
       return NextResponse.json({ error: "교사만 조회할 수 있습니다." }, { status: 403 });
     }
 
-    const { data: klass, error: classError } = await auth
+    const { data: klass, error: classError } = await supabase
       .from("classes")
       .select("id")
       .eq("id", classId)
@@ -39,7 +42,7 @@ export async function GET(
       return NextResponse.json({ error: "해당 학급을 찾을 수 없거나 권한이 없습니다." }, { status: 404 });
     }
 
-    const { data: students, error: studentsError } = await auth
+    const { data: students, error: studentsError } = await supabase
       .from("users")
       .select("id, name, student_number, current_points, total_points")
       .eq("role", "student")
