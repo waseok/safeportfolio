@@ -98,15 +98,15 @@ export default function StudentJoinPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-amber-50/80 p-6">
-      <div className="w-full max-w-sm rounded-2xl border border-amber-200 bg-white p-8 shadow-lg">
-        <h1 className="mb-2 text-center text-2xl font-bold text-amber-900">
-          학생 입장
-        </h1>
-        <p className="mb-6 text-center text-sm text-amber-800/80">
-          선생님이 알려준 <strong>학급코드 4자리</strong>와
-          <br />
-          내 <strong>이름</strong>을 입력하세요.
+    <div className="flex min-h-screen flex-col items-center justify-center p-6"
+      style={{background: "linear-gradient(180deg, #B8E4F9 0%, #C8E6F5 50%, #D4EDFF 100%)"}}>
+      <div className="mb-6 text-center">
+        <div className="text-5xl mb-2">🏫</div>
+        <h1 className="text-3xl font-black text-white drop-shadow-md">학생 입장</h1>
+      </div>
+      <div className="w-full max-w-sm rounded-3xl bg-white p-8 shadow-2xl border-2 border-white">
+        <p className="mb-6 text-center text-sm text-sky-700 font-bold bg-sky-50 rounded-2xl p-3">
+          선생님이 알려준 <strong>학급코드 4자리</strong>와<br />내 <strong>이름</strong>을 입력하세요
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
@@ -116,7 +116,7 @@ export default function StudentJoinPage() {
             placeholder="학급코드 (4자리)"
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 4))}
-            className="rounded-lg border border-amber-200 px-4 py-2 text-center text-lg tracking-[0.4em] focus:border-amber-500 focus:outline-none"
+            className="rounded-full border-2 border-sky-200 px-4 py-3 text-center text-xl tracking-[0.5em] focus:border-sky-400 focus:outline-none bg-sky-50/50 font-black"
             required
           />
           <input
@@ -124,20 +124,21 @@ export default function StudentJoinPage() {
             placeholder="이름"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="rounded-lg border border-amber-200 px-4 py-2 focus:border-amber-500 focus:outline-none"
+            className="rounded-full border-2 border-sky-200 px-4 py-3 text-center focus:border-sky-400 focus:outline-none bg-sky-50/50 font-bold"
             required
           />
           {error && (
-            <p className="text-sm text-red-600" role="alert">
-              {error}
-            </p>
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 font-medium" role="alert">
+              ⚠️ {error}
+            </div>
           )}
           <button
             type="submit"
             disabled={loading}
-            className="rounded-lg bg-amber-500 py-2 font-medium text-white hover:bg-amber-600 disabled:opacity-50"
+            className="rounded-full py-3 font-black text-gray-900 shadow-lg hover:opacity-90 disabled:opacity-50 transition"
+            style={{background: "linear-gradient(135deg, #FFD700, #FFC107)"}}
           >
-            {loading ? "입장 중…" : "학급으로 입장하기"}
+            {loading ? "입장 중…" : "🚀 학급으로 입장하기!"}
           </button>
         </form>
       </div>
