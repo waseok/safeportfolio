@@ -116,17 +116,17 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-6"
-      style={{background: "linear-gradient(135deg, #fff8e1 0%, #d4edff 50%, #d5f5e3 100%)"}}>
+      style={{background: "linear-gradient(180deg, #B8E4F9 0%, #C8E6F5 50%, #D4EDFF 100%)"}}>
 
       {/* 로고 영역 */}
       <div className="mb-8 text-center">
-        <div className="text-6xl mb-3">🛡️</div>
-        <h1 className="text-3xl font-black text-gray-900">안전 포트폴리오</h1>
-        <p className="text-gray-500 text-sm mt-1">우리 모두의 안전한 하루를 기록해요</p>
+        <div className="text-7xl mb-3 animate-bounce-soft">🛡️</div>
+        <h1 className="text-4xl font-black text-white drop-shadow-lg" style={{textShadow: "0 2px 8px rgba(0,100,180,0.3)"}}>안전 포트폴리오</h1>
+        <p className="text-sky-800 text-base font-bold mt-2 bg-white/50 rounded-full px-4 py-1 inline-block">우리 모두의 안전한 하루를 기록해요 ✨</p>
       </div>
 
-      <div className="w-full max-w-sm rounded-3xl bg-white p-8 shadow-xl border border-gray-100">
-        <h2 className="mb-6 text-center text-xl font-black text-gray-800">
+      <div className="w-full max-w-sm rounded-3xl bg-white p-8 shadow-2xl border-2 border-white">
+        <h2 className="mb-6 text-center text-xl font-black text-sky-800">
           👩‍🏫 교사 로그인
         </h2>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -135,7 +135,7 @@ export default function LoginPage() {
             placeholder="아이디"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
-            className="rounded-xl border-2 border-gray-200 px-4 py-3 text-sm focus:border-orange-400 focus:outline-none"
+            className="rounded-full border-2 border-sky-200 px-4 py-3 text-sm focus:border-sky-400 focus:outline-none bg-sky-50/50"
             required
           />
           <input
@@ -145,41 +145,41 @@ export default function LoginPage() {
             placeholder="비밀번호 (숫자 6자리)"
             value={password}
             onChange={(e) => setPassword(e.target.value.replace(/\D/g, "").slice(0, 6))}
-            className="rounded-xl border-2 border-gray-200 px-4 py-3 text-center text-sm tracking-[0.3em] focus:border-orange-400 focus:outline-none"
+            className="rounded-full border-2 border-sky-200 px-4 py-3 text-center text-sm tracking-[0.3em] focus:border-sky-400 focus:outline-none bg-sky-50/50"
             required
           />
           {error && (
-            <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
               ⚠️ {error}
             </div>
           )}
           <button
             type="submit"
             disabled={loading}
-            className="rounded-xl py-3 font-black text-white shadow-md transition hover:opacity-90 disabled:opacity-50"
-            style={{background: "linear-gradient(135deg, #1e3a5f, #2563eb)"}}
+            className="rounded-full py-3 font-black text-gray-900 shadow-lg transition hover:opacity-90 disabled:opacity-50"
+            style={{background: "linear-gradient(135deg, #FFD700, #FFC107)"}}
           >
-            {loading ? "로그인 중…" : "로그인"}
+            {loading ? "로그인 중…" : "🚀 로그인"}
           </button>
         </form>
 
         <p className="mt-4 text-center text-sm text-gray-500">
           처음이신가요?{" "}
-          <Link href="/signup" className="font-bold text-blue-600 hover:underline">
+          <Link href="/signup" className="font-bold text-sky-600 hover:underline">
             교사 회원가입
           </Link>
         </p>
 
-        <div className="mt-6 border-t border-gray-100 pt-5">
-          <p className="text-center text-xs text-gray-400 mb-3 font-semibold uppercase tracking-wide">
-            테스트 입장
+        <div className="mt-6 border-t border-sky-100 pt-5">
+          <p className="text-center text-xs text-sky-500 mb-3 font-black uppercase tracking-wide">
+            ⭐ 테스트 입장
           </p>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => quickLogin("teacher")}
               disabled={loading}
-              className="rounded-xl border-2 border-blue-200 bg-blue-50 px-3 py-2.5 text-sm font-black text-blue-800 hover:bg-blue-100 disabled:opacity-50 transition"
+              className="rounded-full border-2 border-sky-300 bg-sky-50 px-3 py-2.5 text-sm font-black text-sky-800 hover:bg-sky-100 disabled:opacity-50 transition"
             >
               👩‍🏫 교사 입장
             </button>
@@ -187,7 +187,8 @@ export default function LoginPage() {
               type="button"
               onClick={() => quickLogin("student")}
               disabled={loading}
-              className="rounded-xl border-2 border-orange-200 bg-orange-50 px-3 py-2.5 text-sm font-black text-orange-800 hover:bg-orange-100 disabled:opacity-50 transition"
+              className="rounded-full border-2 border-yellow-300 px-3 py-2.5 text-sm font-black text-yellow-900 hover:opacity-90 disabled:opacity-50 transition shadow-sm"
+              style={{background: "linear-gradient(135deg, #FFF9C4, #FFF176)"}}
             >
               🧒 학생 입장
             </button>
@@ -196,7 +197,8 @@ export default function LoginPage() {
       </div>
 
       <div className="mt-6 text-center">
-        <Link href="/student-join" className="text-sm font-bold text-orange-600 hover:underline">
+        <Link href="/student-join"
+          className="inline-flex items-center gap-2 rounded-full border-2 border-white bg-white/60 px-5 py-2.5 text-sm font-black text-sky-800 hover:bg-white/90 transition shadow-md">
           🧒 학생이에요 → 학급 코드로 입장
         </Link>
       </div>

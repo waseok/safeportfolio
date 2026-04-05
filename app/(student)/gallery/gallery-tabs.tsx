@@ -27,24 +27,26 @@ export function GalleryTabs({
   return (
     <div>
       {/* 탭 버튼 */}
-      <div className="flex gap-2 border-b-2 border-gray-200 mb-6">
+      <div className="flex gap-2 mb-6">
         <button
           onClick={() => setTab("mine")}
-          className={`px-5 py-2.5 text-sm font-black rounded-t-xl transition-all ${
+          className={`rounded-full px-5 py-2.5 text-sm font-black transition-all shadow-sm ${
             tab === "mine"
-              ? "bg-orange-500 text-white border-b-2 border-orange-500 -mb-0.5"
-              : "text-gray-500 hover:text-gray-700"
+              ? "text-gray-900 shadow-md"
+              : "bg-white/70 border-2 border-sky-200 text-sky-700 hover:bg-white"
           }`}
+          style={tab === "mine" ? {background: "linear-gradient(135deg, #FFD700, #FFC107)", color: "#78350f"} : undefined}
         >
           📁 내 활동 ({myPosts.length})
         </button>
         <button
           onClick={() => setTab("class")}
-          className={`px-5 py-2.5 text-sm font-black rounded-t-xl transition-all ${
+          className={`rounded-full px-5 py-2.5 text-sm font-black transition-all shadow-sm ${
             tab === "class"
-              ? "bg-blue-500 text-white border-b-2 border-blue-500 -mb-0.5"
-              : "text-gray-500 hover:text-gray-700"
+              ? "text-white shadow-md"
+              : "bg-white/70 border-2 border-sky-200 text-sky-700 hover:bg-white"
           }`}
+          style={tab === "class" ? {background: "linear-gradient(135deg, #29B6F6, #0288D1)"} : undefined}
         >
           👥 우리반 갤러리 ({classPosts.length})
         </button>

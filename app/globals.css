@@ -1,12 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fffbf0;
-  --foreground: #1a1a2e;
-  --safe-orange: #ff6b2b;
-  --safe-yellow: #ffd700;
-  --safe-green: #2ecc71;
-  --safe-blue: #3498db;
+  --background: #C8E6F5;
+  --foreground: #1a2d3d;
+  --safe-sky: #C8E6F5;
+  --safe-yellow: #FFD700;
+  --safe-amber: #FFC107;
+  --safe-cream: #FFF8DC;
+  --safe-salmon: #FFE4E1;
+  --safe-light-blue: #E8F4FD;
 }
 
 @theme inline {
@@ -18,21 +20,18 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #fffbf0;
-    --foreground: #1a1a2e;
+    --background: #C8E6F5;
+    --foreground: #1a2d3d;
   }
 }
 
 body {
-  background:
-    radial-gradient(circle at 15% 10%, #fff3cd 0%, transparent 30%),
-    radial-gradient(circle at 85% 5%, #d4edff 0%, transparent 30%),
-    radial-gradient(circle at 50% 90%, #d5f5e3 0%, transparent 30%),
-    linear-gradient(180deg, #fffbf0 0%, #fff8e1 100%);
+  background: linear-gradient(180deg, #B8E4F9 0%, #C8E6F5 40%, #D4EDFF 100%);
   color: var(--foreground);
   font-family: var(--font-geist-sans), 'Noto Sans KR', Arial, Helvetica, sans-serif;
   font-size: 16px;
   line-height: 1.7;
+  min-height: 100vh;
 }
 
 /* Fun bounce animation for icons */
@@ -42,8 +41,8 @@ body {
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 43, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(255, 107, 43, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.5); }
+  50% { box-shadow: 0 0 0 8px rgba(255, 215, 0, 0); }
 }
 
 @keyframes shimmer {
@@ -81,15 +80,23 @@ body {
   letter-spacing: 0.05em;
 }
 
+/* Pill button base */
+.pill-btn {
+  border-radius: 9999px;
+  padding: 0.4rem 1rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #fff8e1;
+  background: #D4EDFF;
 }
 ::-webkit-scrollbar-thumb {
-  background: #fbbf24;
+  background: #5BB8E8;
   border-radius: 3px;
 }

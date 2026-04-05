@@ -99,10 +99,11 @@ export default function UploadPage() {
   return (
     <div className="mx-auto max-w-lg space-y-6">
       {/* 헤더 */}
-      <div className="rounded-2xl p-5 text-white shadow-lg"
-        style={{background: "linear-gradient(135deg, #ff6b2b, #ffd700)"}}>
-        <h1 className="text-2xl font-black">📷 안전 활동 인증샷 올리기</h1>
-        <p className="text-orange-100 text-sm mt-1">
+      <div className="rounded-3xl p-6 text-center text-white shadow-xl"
+        style={{background: "linear-gradient(135deg, #29B6F6, #0288D1)"}}>
+        <div className="text-5xl mb-2">📷</div>
+        <h1 className="text-2xl font-black">⭐ 안전 활동 인증샷 올리기</h1>
+        <p className="text-sky-100 text-sm mt-1 font-bold">
           오늘 실천한 안전 활동을 사진으로 남기고 포인트를 받아요!
         </p>
       </div>
@@ -186,8 +187,8 @@ export default function UploadPage() {
         <button
           type="submit"
           disabled={loading || !file}
-          className="w-full rounded-2xl py-4 text-lg font-black text-white shadow-lg transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{background: loading ? "#9ca3af" : "linear-gradient(135deg, #ff6b2b, #ffd700)"}}
+          className="w-full rounded-full py-4 text-lg font-black shadow-lg transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{background: loading ? "#9ca3af" : "linear-gradient(135deg, #FFD700, #FFC107)", color: loading ? "white" : "#78350f"}}
         >
           {loading ? "⏳ 업로드 중…" : "🚀 인증샷 올리기!"}
         </button>
