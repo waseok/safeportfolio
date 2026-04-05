@@ -1,9 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
 import { ShopGrid } from "./shop-grid";
 
 export default async function ShopPage() {
-  const supabase = await createClient();
+  // 서비스 클라이언트: RLS 재귀 hang 방지
+  const supabase = createServiceClient();
   const user = await getCurrentUser();
   if (!user) return null;
 

@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -16,7 +16,8 @@ export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) return null;
 
-  const supabase = await createClient();
+  // 서비스 클라이언트: RLS 재귀 hang 방지
+  const supabase = createServiceClient();
   const { data: recentPosts } = await supabase
     .from("gallery_posts")
     .select("id, image_url, category, status, created_at")

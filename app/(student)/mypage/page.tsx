@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { LevelGraph } from "@/components/points/level-graph";
 import { InventoryList } from "./inventory-list";
 
@@ -13,7 +13,8 @@ export default async function MypagePage() {
   const user = await getCurrentUser();
   if (!user) return null;
 
-  const supabase = await createClient();
+  // 서비스 클라이언트: RLS 재귀 hang 방지
+  const supabase = createServiceClient();
   const { data: inventory } = await supabase
     .from("user_inventory")
     .select("item_id")
@@ -36,21 +37,26 @@ export default async function MypagePage() {
     <div className="space-y-6">
       {/* 프로필 헤더 */}
       <div className="rounded-3xl p-6 text-white shadow-xl"
-        style={{background: "linear-gradient(135deg, #ff6b2b 0%, #ff8c42 50%, #ffd700 100%)"}}>
+        style={{background: "linear-gradient(135deg, #0288D1 0%, #29B6F6 50%, #4FC3F7 100%)"}}>
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-full bg-white/30 flex items-center justify-center text-3xl border-2 border-white/50">
             🧑‍🚒
           </div>
-          <div>
-            <p className="text-orange-100 text-sm font-semibold">내 안전 프로필</p>
+          <div className="flex-1">
+            <p className="text-sky-100 text-sm font-bold">내 안전 프로필</p>
             <h1 className="text-2xl font-black">{user.name}</h1>
-            <p className="text-orange-100 text-sm">{levelTitle}</p>
+            <p className="text-sky-100 text-sm font-semibold">{levelTitle}</p>
+          </div>
+          <div className="rounded-2xl p-3 text-center shadow-md"
+            style={{background: "linear-gradient(135deg, #FFD700, #FFC107)"}}>
+            <p className="text-xs font-black text-yellow-900">포인트</p>
+            <p className="text-2xl font-black text-yellow-900">⭐{user.current_points}</p>
           </div>
         </div>
       </div>
 
       {/* 포인트 & 레벨 */}
-      <section className="rounded-2xl border-2 border-orange-200 bg-white p-6 shadow-sm">
+      <section className="rounded-3xl border-2 border-sky-200 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-black text-gray-900">⭐ 포인트 & 레벨</h2>
         <LevelGraph
           totalPoints={user.total_points}

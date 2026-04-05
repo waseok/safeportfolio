@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { AdminItemsClient } from "./admin-items-client";
 
@@ -8,7 +8,8 @@ export default async function AdminItemsPage() {
   if (!user) redirect("/login");
   if (user.role !== "teacher") redirect("/dashboard");
 
-  const supabase = await createClient();
+  // 서비스 클라이언트: RLS 재귀 hang 방지
+  const supabase = createServiceClient();
   const { data: items } = await supabase
     .from("items")
     .select("id, name, type, price, image_url, is_active")

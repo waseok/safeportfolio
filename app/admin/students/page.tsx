@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { AdminStudentsClient } from "./admin-students-client";
 
@@ -8,7 +8,8 @@ export default async function AdminStudentsPage() {
   if (!user) redirect("/login");
   if (user.role !== "teacher") redirect("/dashboard");
 
-  const supabase = await createClient();
+  // 서비스 클라이언트: RLS 재귀 hang 방지
+  const supabase = createServiceClient();
   const { data: classes } = await supabase
     .from("classes")
     .select("id, grade, class_number, name, code")
