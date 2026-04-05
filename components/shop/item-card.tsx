@@ -45,13 +45,10 @@ export function ItemCard({ item, currentPoints, owned, onPurchased }: Props) {
 
   return (
     <article
-      className="relative overflow-hidden rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100/80 shadow-lg transition hover:scale-[1.02] hover:shadow-xl"
-      style={{
-        boxShadow:
-          "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1), inset 0 0 0 1px rgba(251 191 36 / 0.3)",
-      }}
+      className="relative overflow-hidden rounded-3xl border-2 bg-white shadow-md transition card-hover"
+      style={{borderColor: owned ? "#6EE7B7" : "#FCD34D"}}
     >
-      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-t-xl bg-amber-200/50">
+      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-t-2xl bg-yellow-50">
         {item.image_url ? (
           <Image
             src={item.image_url}
@@ -61,22 +58,25 @@ export function ItemCard({ item, currentPoints, owned, onPurchased }: Props) {
             unoptimized
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-4xl text-amber-600">
+          <div className="flex h-full items-center justify-center text-5xl">
             🎁
           </div>
         )}
         {owned && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-            <span className="rounded-full bg-amber-500 px-3 py-1 text-sm font-medium text-white">
-              보유 중
+          <div className="absolute inset-0 flex items-center justify-center bg-green-900/40">
+            <span className="rounded-full bg-green-400 px-4 py-1.5 text-sm font-black text-green-900 shadow-md">
+              ✓ 보유 중
             </span>
           </div>
         )}
+        <div className="absolute top-2 right-2 rounded-full px-2.5 py-1 text-xs font-black shadow-md"
+          style={{background: "linear-gradient(135deg, #FFD700, #FFC107)", color: "#78350f"}}>
+          ⭐ {item.price}P
+        </div>
       </div>
       <div className="p-4">
-        <h3 className="font-bold text-amber-900">{item.name}</h3>
-        <p className="text-xs text-amber-700/80">{item.type}</p>
-        <p className="mt-2 text-lg font-bold text-amber-600">{item.price} P</p>
+        <h3 className="font-black text-gray-900 text-base">{item.name}</h3>
+        <p className="text-xs text-gray-500 rounded-full bg-gray-100 inline-block px-2 py-0.5 mt-1">{item.type}</p>
         {error && (
           <p className="mt-1 text-sm text-red-600" role="alert">
             {error}
@@ -87,9 +87,10 @@ export function ItemCard({ item, currentPoints, owned, onPurchased }: Props) {
             type="button"
             onClick={handlePurchase}
             disabled={!canBuy || loading}
-            className="mt-3 w-full rounded-xl bg-amber-500 py-2 font-medium text-white hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-3 w-full rounded-full py-2.5 font-black text-gray-900 shadow-md hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 transition"
+            style={{background: canBuy ? "linear-gradient(135deg, #FFD700, #FFC107)" : "#E5E7EB", color: canBuy ? "#78350f" : "#9CA3AF"}}
           >
-            {loading ? "처리 중…" : canBuy ? "구매" : "포인트 부족"}
+            {loading ? "처리 중…" : canBuy ? "🛒 구매하기" : "⭐ 포인트 부족"}
           </button>
         )}
       </div>
