@@ -28,14 +28,17 @@ export function AdminSidebar({ userName }: { userName: string }) {
     <aside className="sticky top-0 flex h-screen w-64 flex-col justify-between bg-white border-r border-slate-200 shadow-sm">
       {/* 상단: 로고 + 교사 정보 */}
       <div>
-        <div className="flex flex-col items-center gap-2 border-b border-slate-200 px-5 py-5">
-          <Image src="/logo.png" alt="SAFE 로고" width={72} height={72} />
-          <p className="text-base font-bold text-slate-800 tracking-wide">교사 관리</p>
+        <div className="flex flex-col items-center gap-3 border-b border-slate-200 px-5 py-6">
+          <Image src="/logo.png" alt="SAFE 로고" width={100} height={100} />
+          <p className="text-lg font-extrabold text-slate-800 tracking-wide">교사 관리</p>
         </div>
 
         {/* 교사 카드 */}
         <div className="mx-4 mt-4 rounded-xl bg-slate-100 border border-slate-200 p-3 text-center">
-          <p className="text-base font-semibold text-slate-700 truncate">{userName}</p>
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-xl">👩‍🏫</span>
+            <p className="text-base font-semibold text-slate-700 truncate">{userName}</p>
+          </div>
           <p className="mt-0.5 text-xs text-slate-400">교사 계정</p>
         </div>
 
