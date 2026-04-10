@@ -19,6 +19,7 @@ export function CreateClassForm() {
     try {
       const res = await fetch("/api/admin/classes", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           grade: grade ? parseInt(grade, 10) : null,

@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getRedirectPath, type Role } from "@/lib/auth-utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Link from "next/link";
+import Image from "next/image";
 
 function shortHash(input: string): string {
   let h = 2166136261;
@@ -29,7 +29,10 @@ function explainDbError(message: string): string {
   return message;
 }
 
+type LoginMode = "select" | "student" | "teacher";
+
 export default function LoginPage() {
+  const [mode, setMode] = useState<LoginMode>("select");
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -50,39 +53,39 @@ export default function LoginPage() {
         if (signUp.error || !signUp.data.user) { setError(signUp.error?.message ?? "테스트 계정 생성 실패"); return; }
         uid = signUp.data.user.id;
       }
-      if (!uid) { setError("테스트 입장에 실패했습니다. Supabase Confirm email을 끄고 다시 시도하세요."); return; }
+      if (!uid) { setError("입장에 실패했습니다. Supabase Confirm email을 끄고 다시 시도하세요."); return; }
       const role: Role = kind === "teacher" ? "teacher" : "student";
       const studentProfile = kind === "student"
-        ? { id: uid, role, name: "이동수", student_number: 5, grade: 1, class_number: 1, current_points: 45, total_points: 78 }
+        ? { id: uid, role, name: "이동수", student_number: 5, grade: 1, class_number: 1, current_points: 25, total_points: 48 }
         : { id: uid, role, name: "테스트 교사" };
       const { error: upsertUserError } = await supabase.from("users").upsert(
         studentProfile,
         { onConflict: "id" }
       );
-      if (upsertUserError) { setError(`테스트 프로필 저장 실패: ${explainDbError(upsertUserError.message)}`); return; }
+      if (upsertUserError) { setError(`프로필 저장 실패: ${explainDbError(upsertUserError.message)}`); return; }
       if (kind === "teacher") {
         const { data: cls } = await supabase.from("classes").select("id").eq("code", "1234").maybeSingle();
         if (!cls) {
           const { error: classInsertError } = await supabase.from("classes").insert({ teacher_id: uid, code: "1234", name: "테스트 학급", grade: 1, class_number: 1 });
-          if (classInsertError) { setError(`테스트 학급 생성 실패: ${explainDbError(classInsertError.message)}`); return; }
+          if (classInsertError) { setError(`학급 생성 실패: ${explainDbError(classInsertError.message)}`); return; }
         }
       } else {
         const { data: cls } = await supabase.from("classes").select("id").eq("code", "1234").maybeSingle();
         if (cls) {
           const { error: joinClassError } = await supabase.from("users").update({ class_id: cls.id }).eq("id", uid);
-          if (joinClassError) { setError(`테스트 학생 학급 연결 실패: ${explainDbError(joinClassError.message)}`); return; }
+          if (joinClassError) { setError(`학급 연결 실패: ${explainDbError(joinClassError.message)}`); return; }
         }
       }
       router.push(getRedirectPath(role));
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "테스트 입장 중 오류");
+      setError(e instanceof Error ? e.message : "입장 중 오류");
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleTeacherLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -97,7 +100,7 @@ export default function LoginPage() {
       const { data: signData, error: signError } = await supabase.auth.signInWithPassword({ email, password: pw });
       if (signError) { setError(signError.message); return; }
       const uid = signData.user?.id;
-      if (!uid) { setError("로그인에 실패했습니다. Supabase에서 Confirm email을 끄고 다시 시도하세요."); return; }
+      if (!uid) { setError("로그인에 실패했습니다."); return; }
       const { data: profile, error: profileError } = await supabase.from("users").select("role").eq("id", uid).single();
       if (profileError && profileError.code !== "PGRST116") { setError(`프로필 조회 실패: ${explainDbError(profileError.message)}`); return; }
       if (!profile) {
@@ -108,7 +111,7 @@ export default function LoginPage() {
       router.push(getRedirectPath(role));
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "로그인 처리 중 오류가 발생했습니다.");
+      setError(e instanceof Error ? e.message : "로그인 처리 중 오류");
     } finally {
       setLoading(false);
     }
@@ -116,91 +119,127 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-6"
-      style={{background: "linear-gradient(180deg, #B8E4F9 0%, #C8E6F5 50%, #D4EDFF 100%)"}}>
+      style={{ background: "linear-gradient(160deg, #e8f4fd 0%, #dbeafe 40%, #c7d9f0 100%)" }}>
 
-      {/* 로고 영역 */}
-      <div className="mb-8 text-center">
-        <div className="text-7xl mb-3 animate-bounce-soft">🛡️</div>
-        <h1 className="text-4xl font-black text-white drop-shadow-lg" style={{textShadow: "0 2px 8px rgba(0,100,180,0.3)"}}>안전 포트폴리오</h1>
-        <p className="text-sky-800 text-base font-bold mt-2 bg-white/50 rounded-full px-4 py-1 inline-block">우리 모두의 안전한 하루를 기록해요 ✨</p>
+      {/* 로고 + 타이틀 */}
+      <div className="mb-10 flex flex-col items-center text-center">
+        <Image
+          src="/logo.png"
+          alt="SAFE 프로그램 로고"
+          width={160}
+          height={160}
+          className="mb-4 drop-shadow-lg"
+          priority
+        />
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-800">
+          SAFE 프로그램 포트폴리오
+        </h1>
+        <p className="mt-2 text-base text-slate-500 font-medium">
+          스스로 묻고 함께 실천하는 안전 탐사 기록
+        </p>
       </div>
 
-      <div className="w-full max-w-sm rounded-3xl bg-white p-8 shadow-2xl border-2 border-white">
-        <h2 className="mb-6 text-center text-xl font-black text-sky-800">
-          👩‍🏫 교사 로그인
-        </h2>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <input
-            type="text"
-            placeholder="아이디"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            className="rounded-full border-2 border-sky-200 px-4 py-3 text-sm focus:border-sky-400 focus:outline-none bg-sky-50/50"
-            required
-          />
-          <input
-            type="password"
-            inputMode="numeric"
-            maxLength={6}
-            placeholder="비밀번호 (숫자 6자리)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value.replace(/\D/g, "").slice(0, 6))}
-            className="rounded-full border-2 border-sky-200 px-4 py-3 text-center text-sm tracking-[0.3em] focus:border-sky-400 focus:outline-none bg-sky-50/50"
-            required
-          />
-          {error && (
-            <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-              ⚠️ {error}
-            </div>
-          )}
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-full py-3 font-black text-gray-900 shadow-lg transition hover:opacity-90 disabled:opacity-50"
-            style={{background: "linear-gradient(135deg, #FFD700, #FFC107)"}}
-          >
-            {loading ? "로그인 중…" : "🚀 로그인"}
-          </button>
-        </form>
-
-        <p className="mt-4 text-center text-sm text-gray-500">
-          처음이신가요?{" "}
-          <Link href="/signup" className="font-bold text-sky-600 hover:underline">
-            교사 회원가입
-          </Link>
-        </p>
-
-        <div className="mt-6 border-t border-sky-100 pt-5">
-          <p className="text-center text-xs text-sky-500 mb-3 font-black uppercase tracking-wide">
-            ⭐ 테스트 입장
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => quickLogin("teacher")}
-              disabled={loading}
-              className="rounded-full border-2 border-sky-300 bg-sky-50 px-3 py-2.5 text-sm font-black text-sky-800 hover:bg-sky-100 disabled:opacity-50 transition"
-            >
-              👩‍🏫 교사 입장
-            </button>
+      {/* 모드 선택 카드 */}
+      <div className="w-full max-w-md">
+        {mode === "select" && (
+          <div className="rounded-2xl bg-white/90 backdrop-blur-sm p-8 shadow-xl border border-slate-200/60 space-y-4">
             <button
               type="button"
               onClick={() => quickLogin("student")}
               disabled={loading}
-              className="rounded-full border-2 border-yellow-300 px-3 py-2.5 text-sm font-black text-yellow-900 hover:opacity-90 disabled:opacity-50 transition shadow-sm"
-              style={{background: "linear-gradient(135deg, #FFF9C4, #FFF176)"}}
+              className="flex w-full items-center gap-4 rounded-xl border-2 border-sky-200 bg-gradient-to-r from-sky-50 to-blue-50 px-5 py-4 text-left transition hover:border-sky-400 hover:shadow-md disabled:opacity-50"
             >
-              🧒 학생 입장
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 text-2xl">
+                🎒
+              </span>
+              <div>
+                <p className="text-lg font-bold text-slate-800">학생 로그인</p>
+                <p className="text-sm text-slate-500">학급코드로 입장합니다</p>
+              </div>
             </button>
-          </div>
-        </div>
-      </div>
 
-      <div className="mt-6 text-center">
-        <Link href="/student-join"
-          className="inline-flex items-center gap-2 rounded-full border-2 border-white bg-white/60 px-5 py-2.5 text-sm font-black text-sky-800 hover:bg-white/90 transition shadow-md">
-          🧒 학생이에요 → 학급 코드로 입장
-        </Link>
+            <button
+              type="button"
+              onClick={() => setMode("teacher")}
+              disabled={loading}
+              className="flex w-full items-center gap-4 rounded-xl border-2 border-indigo-200 bg-gradient-to-r from-indigo-50 to-slate-50 px-5 py-4 text-left transition hover:border-indigo-400 hover:shadow-md disabled:opacity-50"
+            >
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-2xl">
+                👩‍🏫
+              </span>
+              <div>
+                <p className="text-lg font-bold text-slate-800">교사 로그인</p>
+                <p className="text-sm text-slate-500">아이디와 비밀번호로 로그인합니다</p>
+              </div>
+            </button>
+
+            {error && (
+              <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
+            {loading && (
+              <p className="text-center text-sm text-slate-400">로그인 중...</p>
+            )}
+          </div>
+        )}
+
+        {mode === "teacher" && (
+          <div className="rounded-2xl bg-white/90 backdrop-blur-sm p-8 shadow-xl border border-slate-200/60">
+            <button
+              type="button"
+              onClick={() => { setMode("select"); setError(null); }}
+              className="mb-4 text-sm text-slate-400 hover:text-slate-600 transition"
+            >
+              ← 돌아가기
+            </button>
+            <h2 className="mb-6 text-xl font-bold text-slate-800">교사 로그인</h2>
+            <form onSubmit={handleTeacherLogin} className="flex flex-col gap-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-600">아이디</label>
+                <input
+                  type="text"
+                  placeholder="아이디를 입력하세요"
+                  value={userId}
+                  onChange={(e) => setUserId(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
+                  required
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-600">비밀번호</label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder="숫자 6자리"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-sm tracking-[0.3em] focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
+                  required
+                />
+              </div>
+              {error && (
+                <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-bold text-white shadow-md transition hover:bg-indigo-700 disabled:opacity-50"
+              >
+                {loading ? "로그인 중…" : "로그인"}
+              </button>
+            </form>
+            <p className="mt-5 text-center text-sm text-slate-400">
+              처음이신가요?{" "}
+              <a href="/signup" className="font-semibold text-indigo-500 hover:underline">
+                회원가입
+              </a>
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

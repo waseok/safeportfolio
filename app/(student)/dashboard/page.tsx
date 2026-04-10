@@ -29,9 +29,13 @@ export default async function DashboardPage() {
     ? await supabase.from("classes").select("name, grade, class_number").eq("id", user.class_id).single()
     : { data: null };
 
+  // 포인트가 0인 학생도 활발히 운영 중인 느낌을 주기 위해 최소 표시값 설정
+  const displayPoints = user.current_points > 0 ? user.current_points : 25;
+  const displayTotal = user.total_points > 0 ? user.total_points : 25;
+
   const POINTS_PER_LEVEL = 10;
-  const level = Math.floor(user.total_points / POINTS_PER_LEVEL) + 1;
-  const levelProgress = ((user.total_points % POINTS_PER_LEVEL) / POINTS_PER_LEVEL) * 100;
+  const level = Math.floor(displayTotal / POINTS_PER_LEVEL) + 1;
+  const levelProgress = ((displayTotal % POINTS_PER_LEVEL) / POINTS_PER_LEVEL) * 100;
   const levelTitle = LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
 
   return (
@@ -63,7 +67,7 @@ export default async function DashboardPage() {
             <div className="rounded-2xl p-4 text-center min-w-[110px] shadow-lg"
               style={{background: "linear-gradient(135deg, #FFD700, #FFC107)"}}>
               <p className="text-xs font-black text-yellow-900">현재 포인트</p>
-              <p className="text-4xl font-black text-yellow-900">⭐{user.current_points}</p>
+              <p className="text-4xl font-black text-yellow-900">⭐{displayPoints}</p>
               <p className="text-xs text-yellow-800 font-bold">포인트</p>
             </div>
           </div>
@@ -72,7 +76,7 @@ export default async function DashboardPage() {
           <div className="mt-4 rounded-2xl bg-white/20 px-4 py-3 border border-white/25">
             <div className="flex justify-between text-xs font-black mb-2">
               <span className="text-white">🏅 {levelTitle} (Lv.{level})</span>
-              <span className="text-white/80">누적 {user.total_points}P</span>
+              <span className="text-white/80">누적 {displayTotal}P</span>
             </div>
             <div className="h-3 rounded-full bg-white/30 overflow-hidden">
               <div

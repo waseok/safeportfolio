@@ -2,7 +2,6 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { AdminAllPostsTabs } from "./admin-all-posts-tabs";
 
 export default async function AdminPage() {
-  // Service client: RLS 우회 → 모든 학생 게시물 + 이름 조회 가능
   const supabase = createServiceClient();
 
   const { data: allPosts } = await supabase
@@ -41,24 +40,26 @@ export default async function AdminPage() {
   const rejectedCount = posts.filter((p) => p.status === "rejected").length;
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl p-5 text-white shadow-lg"
-        style={{background: "linear-gradient(135deg, #1e3a5f, #2563eb)"}}>
-        <h1 className="text-2xl font-black">📋 안전 활동 인증 관리</h1>
-        <p className="text-blue-200 text-sm mt-1">학생들이 올린 안전 활동 인증샷을 확인하고 승인/반려하세요.</p>
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          <div className="rounded-xl bg-white/15 p-3 text-center border border-white/20">
-            <p className="text-2xl font-black text-yellow-300">{pendingCount}</p>
-            <p className="text-xs text-blue-200 mt-0.5">⏳ 대기중</p>
-          </div>
-          <div className="rounded-xl bg-white/15 p-3 text-center border border-white/20">
-            <p className="text-2xl font-black text-green-300">{approvedCount}</p>
-            <p className="text-xs text-blue-200 mt-0.5">✅ 승인됨</p>
-          </div>
-          <div className="rounded-xl bg-white/15 p-3 text-center border border-white/20">
-            <p className="text-2xl font-black text-red-300">{rejectedCount}</p>
-            <p className="text-xs text-blue-200 mt-0.5">❌ 반려됨</p>
-          </div>
+    <div className="space-y-8">
+      {/* 헤더 카드 */}
+      <div>
+        <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">인증 관리</h1>
+        <p className="text-sm text-slate-500 mt-1">학생들이 올린 안전 활동 인증샷을 확인하고 승인/반려하세요.</p>
+      </div>
+
+      {/* 통계 카드 */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="rounded-xl bg-white border border-slate-200 p-5 shadow-sm">
+          <p className="text-sm font-medium text-slate-500">대기중</p>
+          <p className="mt-1 text-3xl font-extrabold text-amber-500">{pendingCount}</p>
+        </div>
+        <div className="rounded-xl bg-white border border-slate-200 p-5 shadow-sm">
+          <p className="text-sm font-medium text-slate-500">승인됨</p>
+          <p className="mt-1 text-3xl font-extrabold text-emerald-500">{approvedCount}</p>
+        </div>
+        <div className="rounded-xl bg-white border border-slate-200 p-5 shadow-sm">
+          <p className="text-sm font-medium text-slate-500">반려됨</p>
+          <p className="mt-1 text-3xl font-extrabold text-red-400">{rejectedCount}</p>
         </div>
       </div>
 

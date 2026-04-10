@@ -1,5 +1,7 @@
+import { assertTeacherForAdminApi } from "@/lib/ensure-teacher-profile";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 export async function POST(request: Request) {
   try {
@@ -11,15 +13,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
     }
 
-    // RLS 재귀 충돌 방지: 역할 확인은 서비스 클라이언트로
+    // RLS 재귀 충돌 방지: 역할·보강 upsert는 서비스 클라이언트로
     const supabase = createServiceClient();
-    const { data: profile } = await supabase
-      .from("users")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    if (profile?.role !== "teacher") {
-      return NextResponse.json({ error: "교사만 학급을 생성할 수 있습니다." }, { status: 403 });
+    const teacherGate = await assertTeacherForAdminApi(supabase, user);
+    if (!teacherGate.ok) {
+      return NextResponse.json(
+        { error: teacherGate.error },
+        { status: teacherGate.status }
+      );
     }
 
     const body = await request.json();
@@ -88,11 +89,14 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
+      console.error("[POST /api/admin/classes] insert error:", error);
       return NextResponse.json(
         { error: "학급을 저장하는 중 오류가 발생했습니다." },
         { status: 500 }
       );
     }
+
+    revalidatePath("/admin/classes");
 
     return NextResponse.json({ ok: true, classId: data.id, code: data.code });
   } catch (e) {

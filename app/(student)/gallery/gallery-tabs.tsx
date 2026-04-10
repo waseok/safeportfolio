@@ -48,7 +48,7 @@ export function GalleryTabs({
           }`}
           style={tab === "class" ? {background: "linear-gradient(135deg, #29B6F6, #0288D1)"} : undefined}
         >
-          👥 우리반 갤러리 ({classPosts.length})
+          👥 전체 갤러리 ({classPosts.length})
         </button>
       </div>
 
@@ -112,7 +112,7 @@ export function GalleryTabs({
           {classPosts.length === 0 ? (
             <div className="text-center py-16 text-gray-400">
               <span className="text-5xl">🏫</span>
-              <p className="mt-3 font-semibold">우리반 승인된 활동이 아직 없어요</p>
+              <p className="mt-3 font-semibold">승인된 활동이 아직 없어요</p>
               <p className="text-sm mt-1">첫 번째로 안전 활동을 기록해 보세요!</p>
             </div>
           ) : (
