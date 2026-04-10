@@ -4,10 +4,10 @@ import { NextResponse } from "next/server";
 /** 교사 전용. 내 학급의 학생 목록 반환 */
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ classId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { classId } = await params;
+    const { id: classId } = await params;
     if (!classId) {
       return NextResponse.json({ error: "학급 ID가 필요합니다." }, { status: 400 });
     }
