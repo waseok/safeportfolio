@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type ClassRow = {
@@ -14,6 +14,12 @@ type ClassRow = {
 export function ClassesListClient({ initialClasses }: { initialClasses: ClassRow[] }) {
   const router = useRouter();
   const [rows, setRows] = useState(initialClasses);
+
+  // 서버 컴포넌트가 router.refresh()로 새 initialClasses를 넘겨도,
+  // useState 초깃값은 최초 마운트에만 적용되므로 props와 동기화합니다.
+  useEffect(() => {
+    setRows(initialClasses);
+  }, [initialClasses]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [nextCode, setNextCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,6 +36,7 @@ export function ClassesListClient({ initialClasses }: { initialClasses: ClassRow
     try {
       const res = await fetch(`/api/admin/classes/${classId}`, {
         method: "PATCH",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code }),
       });

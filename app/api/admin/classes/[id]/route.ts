@@ -1,5 +1,7 @@
+import { assertTeacherForAdminApi } from "@/lib/ensure-teacher-profile";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 export async function PATCH(
   request: Request,
@@ -14,15 +16,13 @@ export async function PATCH(
       return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
     }
 
-    // RLS 재귀 충돌 방지: 역할 확인은 서비스 클라이언트로
     const supabase = createServiceClient();
-    const { data: profile } = await supabase
-      .from("users")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    if (profile?.role !== "teacher") {
-      return NextResponse.json({ error: "교사만 수정할 수 있습니다." }, { status: 403 });
+    const teacherGate = await assertTeacherForAdminApi(supabase, user);
+    if (!teacherGate.ok) {
+      return NextResponse.json(
+        { error: teacherGate.error },
+        { status: teacherGate.status }
+      );
     }
 
     const { id } = await context.params;
@@ -56,8 +56,11 @@ export async function PATCH(
       .single();
 
     if (error || !data) {
+      console.error("[PATCH /api/admin/classes/[id]] update error:", error);
       return NextResponse.json({ error: "학급코드 수정에 실패했습니다." }, { status: 500 });
     }
+
+    revalidatePath("/admin/classes");
 
     return NextResponse.json({ ok: true, classId: data.id, code: data.code });
   } catch (e) {
