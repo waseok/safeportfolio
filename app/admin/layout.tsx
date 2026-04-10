@@ -17,7 +17,7 @@ export default async function AdminLayout({
       <AdminSidebar userName={user.name} />
 
       {/* 메인 콘텐츠 — 밝은 그레이 배경 */}
-      <main className="flex-1 overflow-y-auto bg-slate-50 p-8 lg:p-10">
+      <main className="flex-1 overflow-y-auto bg-sky-50/50 p-8 lg:p-10">
         <div className="mx-auto max-w-6xl">
           {children}
         </div>
