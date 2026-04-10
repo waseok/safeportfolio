@@ -56,7 +56,7 @@ export default async function DashboardPage() {
               {classInfo && (
                 <div className="mt-1.5">
                   <span className="inline-flex items-center gap-1 rounded-full bg-white/25 px-2.5 py-0.5 text-sm font-bold text-white border border-white/30">
-                    🏫 {classInfo.grade}학년 {classInfo.class_number}반
+                    🏫 {classInfo.name || `${classInfo.grade ?? ""}학년 ${classInfo.class_number ?? ""}반`}
                   </span>
                 </div>
               )}
