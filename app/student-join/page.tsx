@@ -83,6 +83,8 @@ export default function StudentJoinPage() {
         class_number: klass.class_number,
         student_number: studentNum,
         class_id: klass.id,
+        current_points: 25,
+        total_points: 25,
       },
       { onConflict: "id" }
     );

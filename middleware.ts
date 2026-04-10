@@ -32,14 +32,16 @@ export async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname;
 
     if (!user) {
-      if (!PUBLIC_PATHS.includes(path) && path !== "/") {
-        const login = new URL("/login", request.url);
-        return NextResponse.redirect(login);
+      if (path === "/") {
+        return NextResponse.redirect(new URL("/login", request.url));
+      }
+      if (!PUBLIC_PATHS.includes(path)) {
+        return NextResponse.redirect(new URL("/login", request.url));
       }
       return response;
     }
 
-    if (path === "/") {
+    if (path === "/" || path === "/login") {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 

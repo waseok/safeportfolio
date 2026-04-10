@@ -118,24 +118,23 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-6"
-      style={{ background: "linear-gradient(160deg, #e8f4fd 0%, #dbeafe 40%, #c7d9f0 100%)" }}>
+    <div className="flex min-h-screen flex-col items-center justify-center p-6 bg-white">
 
       {/* 로고 + 타이틀 */}
       <div className="mb-10 flex flex-col items-center text-center">
         <Image
           src="/logo.png"
           alt="SAFE 프로그램 로고"
-          width={160}
-          height={160}
-          className="mb-4 drop-shadow-lg"
+          width={220}
+          height={220}
+          className="mb-5"
           priority
         />
         <h1 className="text-3xl font-extrabold tracking-tight text-slate-800">
-          SAFE 프로그램 포트폴리오
+          SAFE 프로그램
         </h1>
         <p className="mt-2 text-base text-slate-500 font-medium">
-          스스로 묻고 함께 실천하는 안전 탐사 기록
+          이야기로 묻고 실천하는 안전문해력 교실
         </p>
       </div>
 

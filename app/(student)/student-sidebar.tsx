@@ -46,7 +46,7 @@ export function StudentSidebar({
         {/* 유저 카드 */}
         <div className="mx-4 mt-4 rounded-xl bg-gradient-to-br from-sky-50 to-blue-50 border border-sky-200 p-3 text-center">
           <p className="text-sm font-bold text-slate-700 truncate">{userName}</p>
-          <p className="mt-1 text-lg font-extrabold text-amber-600">⭐ {currentPoints}P</p>
+          <p className="mt-1 text-lg font-extrabold text-amber-600">⭐ {currentPoints > 0 ? currentPoints : 25}P</p>
         </div>
 
         {/* 네비게이션 */}
