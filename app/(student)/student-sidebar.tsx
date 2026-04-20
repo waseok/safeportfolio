@@ -86,6 +86,24 @@ export function StudentSidebar({
         </div>
       </aside>
 
+      {/* 모바일 상단바 (lg 미만) */}
+      <header className="fixed left-0 right-0 top-0 z-50 flex items-center justify-between border-b border-sky-100 bg-white px-4 py-2 shadow-sm lg:hidden">
+        <div className="flex items-center gap-2">
+          <Image src="/logo.png" alt="SAFE" width={32} height={32} />
+          <div>
+            <p className="text-sm font-bold text-slate-700 leading-tight">{userName}</p>
+            <p className="text-xs font-bold text-amber-500">⭐ {displayPoints}P</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-500 hover:bg-slate-50"
+        >
+          로그아웃
+        </button>
+      </header>
+
       {/* 모바일 하단 탭바 (lg 미만에서만 표시) */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-sky-100 bg-white shadow-[0_-2px_12px_rgba(0,0,0,0.08)] lg:hidden">
         {NAV_ITEMS.map((item) => {

@@ -142,20 +142,18 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {mode === "select" && (
           <div className="rounded-2xl bg-white/90 backdrop-blur-sm p-8 shadow-xl border border-slate-200/60 space-y-4">
-            <button
-              type="button"
-              onClick={() => quickLogin("student")}
-              disabled={loading}
-              className="flex w-full items-center gap-4 rounded-xl border-2 border-sky-200 bg-gradient-to-r from-sky-50 to-blue-50 px-5 py-4 text-left transition hover:border-sky-400 hover:shadow-md disabled:opacity-50"
+            <a
+              href="/student-join"
+              className="flex w-full items-center gap-4 rounded-xl border-2 border-sky-200 bg-gradient-to-r from-sky-50 to-blue-50 px-5 py-4 text-left transition hover:border-sky-400 hover:shadow-md"
             >
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 text-2xl">
                 🎒
               </span>
               <div>
-                <p className="text-lg font-bold text-slate-800">학생 로그인</p>
-                <p className="text-sm text-slate-500">학급코드로 입장합니다</p>
+                <p className="text-lg font-bold text-slate-800">학생 입장</p>
+                <p className="text-sm text-slate-500">학급코드와 이름으로 입장합니다</p>
               </div>
-            </button>
+            </a>
 
             <button
               type="button"
