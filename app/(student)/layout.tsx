@@ -32,7 +32,7 @@ export default async function StudentLayout({
     <div className="flex min-h-screen">
       <StudentSidebar userName={user.name} currentPoints={user.current_points} />
 
-      <main className="flex-1 overflow-y-auto bg-sky-50/60 p-8 lg:p-10">
+      <main className="flex-1 overflow-y-auto bg-sky-50/60 p-4 pb-20 lg:p-10 lg:pb-10">
         <div className="mx-auto max-w-5xl">
           {children}
         </div>
