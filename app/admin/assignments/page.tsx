@@ -71,8 +71,8 @@ export default function AdminAssignmentsPage() {
           background: "linear-gradient(135deg, #0369a1 0%, #0284c7 55%, #0ea5e9 100%)",
         }}
       >
-        <h1 className="text-2xl font-black">📝 함께 만드는 안전과제</h1>
-        <p className="text-sky-100 text-sm mt-1 font-medium">
+        <h1 className="text-[1.75rem] font-black">📝 함께 만드는 안전과제</h1>
+        <p className="text-sky-100 text-base mt-1 font-semibold leading-relaxed">
           학생들이 직접 실천하고 인증샷을 올리는 안전 과제를 만들어보세요.
         </p>
         <div className="mt-4 grid grid-cols-3 gap-3">
@@ -293,7 +293,7 @@ export default function AdminAssignmentsPage() {
       <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
         <p className="font-bold mb-1">💡 과제 운영 안내</p>
         <ul className="space-y-1 text-xs list-disc list-inside text-blue-700">
-          <li>학생이 과제 관련 인증샷을 올리면 <strong>인증 관리</strong> 메뉴에서 확인 후 승인/반려할 수 있어요.</li>
+          <li>학생이 과제 관련 인증샷을 올리면 <strong>과제 인증 관리</strong> 메뉴에서 확인 후 승인·반려할 수 있어요.</li>
           <li>승인 시 과제에 설정한 포인트를 직접 지급하거나, <strong>학생 관리</strong>에서 개별 지급하세요.</li>
           <li>마감된 과제는 학생 화면에서 보이지 않아요.</li>
         </ul>

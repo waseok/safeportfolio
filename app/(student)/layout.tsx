@@ -44,10 +44,12 @@ export default async function StudentLayout({
       <main className="relative flex-1 overflow-y-auto p-4 pb-24 pt-16 lg:p-10 lg:pb-10 lg:pt-10">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat opacity-[0.18]"
+          className="pointer-events-none absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat opacity-[0.42]"
           style={{ backgroundImage: "url(/images/site-bg-illustration.png)" }}
         />
-        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-sky-50/75" />
+        {/* 로그인보다 살짝 덜 어둡게: 일러스트가 더 보이도록 흰색 덮개를 낮춤 */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-white/52" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-sky-50/45" />
         <div className="relative z-0 mx-auto max-w-5xl">{children}</div>
       </main>
     </div>

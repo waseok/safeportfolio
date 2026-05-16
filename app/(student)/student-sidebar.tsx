@@ -57,7 +57,7 @@ export function StudentSidebar({
               priority
               className="drop-shadow-sm"
             />
-            <p className="text-center text-lg font-extrabold leading-tight text-slate-800">
+            <p className="text-center text-xl font-extrabold leading-tight text-slate-800">
               SAFE 포트폴리오
             </p>
           </div>
@@ -114,7 +114,7 @@ export function StudentSidebar({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-3 text-[15px] font-bold transition-all ${
+                  className={`flex items-center gap-3 rounded-lg px-3 py-3 text-[17px] font-bold transition-all ${
                     isActive
                       ? "bg-sky-100 text-sky-900 shadow-sm"
                       : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
@@ -194,7 +194,7 @@ export function StudentSidebar({
               key={item.href}
               href={item.href}
               title={item.label}
-              className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-bold transition-colors ${
+              className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-bold transition-colors leading-tight ${
                 isActive ? "text-sky-700" : "text-slate-400"
               }`}
             >

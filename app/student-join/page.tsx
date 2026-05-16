@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { AssignmentSuggestionForm } from "@/components/assignment-suggestion-form";
 
 function nameHash(name: string): string {
   let h = 2166136261;
@@ -195,9 +194,6 @@ export default function StudentJoinPage() {
             {loading ? "입장 중…" : "🚀 학급으로 입장하기!"}
           </button>
         </form>
-        <div className="mt-8 border-t border-sky-100 pt-6">
-          <AssignmentSuggestionForm variant="compact" />
-        </div>
       </div>
     </div>
   );

@@ -43,8 +43,8 @@ export default async function AdminPage() {
     <div className="space-y-8">
       {/* 헤더 카드 */}
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">인증 관리</h1>
-        <p className="text-sm text-slate-500 mt-1">학생들이 올린 안전 활동 인증샷을 확인하고 승인/반려하세요.</p>
+        <h1 className="text-[1.75rem] font-extrabold text-slate-800 tracking-tight">과제 인증 관리</h1>
+        <p className="text-base text-slate-600 mt-1">학생들이 올린 안전 활동 인증샷을 확인하고 승인·반려하세요.</p>
       </div>
 
       {/* 통계 카드 */}

@@ -6,11 +6,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 const NAV_ITEMS = [
-  { href: "/admin", icon: "📋", label: "인증 관리", exact: true },
+  { href: "/admin", icon: "📋", label: "과제 인증 관리", exact: true },
   { href: "/admin/classes", icon: "🏫", label: "학급 관리" },
-  { href: "/admin/items", icon: "🎁", label: "상점 관리" },
+  { href: "/admin/items", icon: "🏷️", label: "상점 관리" },
   { href: "/admin/students", icon: "👦", label: "학생 관리" },
-  { href: "/admin/assignments", icon: "📝", label: "과제" },
+  { href: "/admin/assignments", icon: "📝", label: "안전 과제 관리" },
 ];
 
 export function AdminSidebar({ userName }: { userName: string }) {
@@ -32,7 +32,7 @@ export function AdminSidebar({ userName }: { userName: string }) {
         <div>
           <div className="flex flex-col items-center gap-3 border-b border-slate-200 px-5 py-6">
             <Image src="/logo.png" alt="SAFE 로고" width={100} height={100} />
-            <p className="text-lg font-extrabold tracking-wide text-slate-800">교사 관리</p>
+            <p className="text-xl font-extrabold tracking-wide text-slate-800">교사 로그인</p>
           </div>
 
           {/* 교사 카드 */}
@@ -54,7 +54,7 @@ export function AdminSidebar({ userName }: { userName: string }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-all ${
+                  className={`flex items-center gap-3 rounded-lg px-4 py-3 text-[17px] font-semibold transition-all ${
                     isActive
                       ? "border border-indigo-200 bg-indigo-50 font-semibold text-indigo-700"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
@@ -108,7 +108,7 @@ export function AdminSidebar({ userName }: { userName: string }) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition-colors ${
+              className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[12px] font-semibold transition-colors leading-tight ${
                 isActive ? "text-indigo-600" : "text-slate-400"
               }`}
             >
