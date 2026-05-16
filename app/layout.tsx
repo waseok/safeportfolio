@@ -11,11 +11,6 @@ export const metadata: Metadata = {
   title: "세이프 포트폴리오 · SAFE",
   description:
     "탐구과 실천 활동의 결과를 기록하며 안전 성장 과정을 쌓아가는 실천 포트폴리오",
-  icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
-  },
 };
 
 export default function RootLayout({

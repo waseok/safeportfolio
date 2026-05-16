@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { resolveShopItemImageUrl } from "@/lib/shop-item-icons";
 
 type Item = {
   id: string;
@@ -22,6 +23,7 @@ export function ItemCard({ item, currentPoints, owned, onPurchased }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const canBuy = !owned && currentPoints >= item.price;
+  const displayImageUrl = resolveShopItemImageUrl(item.name, item.image_url);
 
   async function handlePurchase() {
     if (!canBuy || loading) return;
@@ -50,9 +52,9 @@ export function ItemCard({ item, currentPoints, owned, onPurchased }: Props) {
     >
       {/* 상단: 아이템 아이콘·이미지 크게, 선물 박스 느낌 축소(비율 낮춤) */}
       <div className="relative aspect-[5/3] w-full overflow-hidden bg-gradient-to-b from-amber-50 to-amber-100/40">
-        {item.image_url ? (
+        {displayImageUrl ? (
           <Image
-            src={item.image_url}
+            src={displayImageUrl}
             alt={item.name}
             fill
             className="object-contain p-3"

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import { resolveShopItemImageUrl } from "@/lib/shop-item-icons";
 import { useRouter } from "next/navigation";
 
 function itemTypeKo(type: string): string {
@@ -69,7 +70,9 @@ export function InventoryList({
 
   return (
     <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {items.map((item) => (
+      {items.map((item) => {
+        const iconUrl = resolveShopItemImageUrl(item.name, item.image_url);
+        return (
         <li
           key={item.id}
           className={`rounded-xl border-2 bg-white p-4 shadow ${
@@ -79,12 +82,12 @@ export function InventoryList({
           }`}
         >
           <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-amber-100">
-            {item.image_url ? (
+            {iconUrl ? (
               <Image
-                src={item.image_url}
+                src={iconUrl}
                 alt={item.name}
                 fill
-                className="object-cover"
+                className="object-contain p-2"
                 unoptimized
               />
             ) : (
@@ -113,7 +116,8 @@ export function InventoryList({
             </button>
           )}
         </li>
-      ))}
+      );
+      })}
     </ul>
   );
 }
