@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { AssignmentSuggestionForm } from "@/components/assignment-suggestion-form";
 
 function nameHash(name: string): string {
   let h = 2166136261;
@@ -96,13 +97,30 @@ export default function StudentJoinPage() {
       return;
     }
 
-    // 학급 내 기존 학생 수로 번호 부여 (신규 가입 시에만 의미 있음)
-    const { count } = await supabase
+    const { data: existing } = await supabase
       .from("users")
-      .select("id", { count: "exact", head: true })
-      .eq("class_id", klass.id)
-      .eq("role", "student");
-    const studentNum = (count ?? 0) + 1;
+      .select("student_number, class_id")
+      .eq("id", authUserId)
+      .maybeSingle();
+
+    let studentNum: number;
+    if (
+      existing?.student_number != null &&
+      existing.class_id === klass.id
+    ) {
+      studentNum = existing.student_number;
+    } else {
+      const { data: maxRows } = await supabase
+        .from("users")
+        .select("student_number")
+        .eq("class_id", klass.id)
+        .eq("role", "student")
+        .not("student_number", "is", null)
+        .order("student_number", { ascending: false })
+        .limit(1);
+      const maxN = maxRows?.[0]?.student_number ?? 0;
+      studentNum = maxN + 1;
+    }
 
     const { error: profileError } = await supabase.from("users").upsert(
       {
@@ -128,16 +146,20 @@ export default function StudentJoinPage() {
   }
 
   return (
-    <div
-      className="flex min-h-screen flex-col items-center justify-center p-6"
-      style={{ background: "linear-gradient(180deg, #B8E4F9 0%, #C8E6F5 50%, #D4EDFF 100%)" }}
-    >
-      <div className="mb-6 text-center">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-6">
+      <div
+        aria-hidden
+        className="fixed inset-0 -z-20 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url(/images/site-bg-illustration.png)" }}
+      />
+      <div aria-hidden className="fixed inset-0 -z-10 bg-white/78 backdrop-blur-[1px]" />
+
+      <div className="relative z-10 mb-6 text-center">
         <div className="mb-2 text-5xl">🏫</div>
-        <h1 className="text-3xl font-black text-white drop-shadow-md">학생 입장</h1>
+        <h1 className="text-3xl font-black text-slate-800 drop-shadow-sm">학생 입장</h1>
       </div>
-      <div className="w-full max-w-sm rounded-3xl border-2 border-white bg-white p-8 shadow-2xl">
-        <p className="mb-6 rounded-2xl bg-sky-50 p-3 text-center text-sm font-bold text-sky-700">
+      <div className="relative z-10 w-full max-w-md rounded-3xl border-2 border-white bg-white/95 p-8 shadow-2xl backdrop-blur-sm">
+        <p className="mb-6 rounded-2xl bg-sky-50 p-3 text-center text-base font-bold text-sky-700">
           선생님이 알려준 <strong>학급코드 4자리</strong>와<br />내 <strong>이름</strong>을 입력하세요
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -173,6 +195,9 @@ export default function StudentJoinPage() {
             {loading ? "입장 중…" : "🚀 학급으로 입장하기!"}
           </button>
         </form>
+        <div className="mt-8 border-t border-sky-100 pt-6">
+          <AssignmentSuggestionForm variant="compact" />
+        </div>
       </div>
     </div>
   );

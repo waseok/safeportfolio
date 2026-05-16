@@ -3,8 +3,10 @@
 import { createClient } from "@/lib/supabase/client";
 import { getRedirectPath, type Role } from "@/lib/auth-utils";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
+
+const TEACHER_ID_STORAGE_KEY = "safeportfolio_teacher_login_id";
 
 function shortHash(input: string): string {
   let h = 2166136261;
@@ -37,7 +39,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [rememberTeacherId, setRememberTeacherId] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    if (mode !== "teacher") return;
+    try {
+      const saved = localStorage.getItem(TEACHER_ID_STORAGE_KEY);
+      if (saved) setUserId(saved);
+    } catch {
+      /* ignore */
+    }
+  }, [mode]);
 
   async function quickLogin(kind: "teacher" | "student") {
     const email = kind === "teacher" ? "teacher-test@safe.local" : "student-test@safe.local";
@@ -108,6 +121,15 @@ export default function LoginPage() {
         if (createProfileError) { setError(`프로필 저장 실패: ${explainDbError(createProfileError.message)}`); return; }
       }
       const role = (profile?.role ?? "teacher") as Role;
+      try {
+        if (rememberTeacherId) {
+          localStorage.setItem(TEACHER_ID_STORAGE_KEY, id);
+        } else {
+          localStorage.removeItem(TEACHER_ID_STORAGE_KEY);
+        }
+      } catch {
+        /* ignore */
+      }
       router.push(getRedirectPath(role));
       router.refresh();
     } catch (e) {
@@ -118,10 +140,17 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-6 bg-white">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-6">
+      {/* 일러스트 배경 (첨부 이미지) */}
+      <div
+        aria-hidden
+        className="fixed inset-0 -z-20 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url(/images/site-bg-illustration.png)" }}
+      />
+      <div aria-hidden className="fixed inset-0 -z-10 bg-white/80 backdrop-blur-[2px]" />
 
       {/* 로고 + 타이틀 */}
-      <div className="mb-10 flex flex-col items-center text-center">
+      <div className="relative z-10 mb-10 flex flex-col items-center text-center">
         <Image
           src="/logo.png"
           alt="SAFE 프로그램 로고"
@@ -131,15 +160,15 @@ export default function LoginPage() {
           priority
         />
         <h1 className="text-3xl font-extrabold tracking-tight text-slate-800">
-          SAFE 프로그램
+          세이프 포트폴리오
         </h1>
-        <p className="mt-2 text-base text-slate-500 font-medium">
-          이야기로 묻고 실천하는 안전문해력 교실
+        <p className="mt-3 max-w-md text-base text-slate-600 font-semibold leading-relaxed px-2">
+          탐구과 실천 활동의 결과를 기록하며 안전 성장 과정을 쌓아가는 실천 포트폴리오
         </p>
       </div>
 
       {/* 모드 선택 카드 */}
-      <div className="w-full max-w-md">
+      <div className="relative z-10 w-full max-w-md">
         {mode === "select" && (
           <div className="rounded-2xl bg-white/90 backdrop-blur-sm p-8 shadow-xl border border-slate-200/60 space-y-4">
             <a
@@ -216,6 +245,15 @@ export default function LoginPage() {
                   required
                 />
               </div>
+              <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-slate-600 select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberTeacherId}
+                  onChange={(e) => setRememberTeacherId(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-400"
+                />
+                아이디 저장 (이 브라우저에만 보관됩니다)
+              </label>
               {error && (
                 <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                   {error}

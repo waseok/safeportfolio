@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { SAFETY_SEVEN_CATEGORIES } from "@/lib/assignments-data";
 
 type ClassRow = {
   id: string;
@@ -19,8 +20,17 @@ type StudentRow = {
   total_points: number;
 };
 
+const ASSIGN_SHORT = ["교통", "화재", "생활", "응급", "사이버", "재난", "폭력"] as const;
+
+function isAssignmentDoneMock(studentId: string, topicIndex: number): boolean {
+  let h = 0;
+  for (let i = 0; i < studentId.length; i += 1) {
+    h = (h * 31 + studentId.charCodeAt(i)) >>> 0;
+  }
+  return ((h >> topicIndex) & 1) === 1;
+}
+
 const MOCK_STUDENTS: StudentRow[] = [
-  { id: "mock-1",  name: "이동수", student_number: 1,  current_points: 45, total_points: 78 },
   { id: "mock-2",  name: "김민준", student_number: 2,  current_points: 120, total_points: 185 },
   { id: "mock-3",  name: "박서연", student_number: 3,  current_points: 30, total_points: 62 },
   { id: "mock-4",  name: "이지훈", student_number: 4,  current_points: 0,  total_points: 10 },
@@ -179,21 +189,46 @@ export function AdminStudentsClient({
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50">
-                  <th className="p-3 font-medium text-slate-700">번호</th>
-                  <th className="p-3 font-medium text-slate-700">이름</th>
-                  <th className="p-3 font-medium text-slate-700">보유 포인트</th>
-                  <th className="p-3 font-medium text-slate-700">누적 포인트</th>
-                  <th className="p-3 font-medium text-slate-700">포인트 지급</th>
+                  <th className="p-2 font-medium text-slate-700 whitespace-nowrap">순번</th>
+                  <th className="p-2 font-medium text-slate-700 whitespace-nowrap">이름</th>
+                  {ASSIGN_SHORT.map((label, i) => (
+                    <th
+                      key={label}
+                      className="p-2 text-center text-xs font-semibold text-slate-700 min-w-[2.5rem]"
+                      title={SAFETY_SEVEN_CATEGORIES[i]}
+                    >
+                      {label}
+                    </th>
+                  ))}
+                  <th className="p-2 font-medium text-slate-700 whitespace-nowrap">보유</th>
+                  <th className="p-2 font-medium text-slate-700 whitespace-nowrap">누적</th>
+                  <th className="p-2 font-medium text-slate-700 whitespace-nowrap">지급</th>
                 </tr>
               </thead>
               <tbody>
-                {students.map((s) => (
+                {students.map((s, rowIdx) => (
                   <tr key={s.id} className="border-b border-slate-100">
-                    <td className="p-3 text-slate-700">{s.student_number ?? "-"}</td>
-                    <td className="p-3 font-medium text-slate-900">{s.name}</td>
-                    <td className="p-3 text-amber-600 font-medium">{s.current_points} P</td>
-                    <td className="p-3 text-slate-600">{s.total_points} P</td>
-                    <td className="p-3">
+                    <td className="p-2 text-slate-700 font-medium">{rowIdx + 1}</td>
+                    <td className="p-2 font-semibold text-slate-900">{s.name}</td>
+                    {ASSIGN_SHORT.map((_, i) => (
+                      <td key={i} className="p-2 text-center text-sm">
+                        <span
+                          className={
+                            isAssignmentDoneMock(s.id, i)
+                              ? "inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-800 font-bold"
+                              : "text-slate-300"
+                          }
+                          title={SAFETY_SEVEN_CATEGORIES[i]}
+                        >
+                          {isAssignmentDoneMock(s.id, i) ? "✓" : "·"}
+                        </span>
+                      </td>
+                    ))}
+                    <td className="p-2 text-amber-600 font-semibold whitespace-nowrap">
+                      {s.current_points} P
+                    </td>
+                    <td className="p-2 text-slate-600 whitespace-nowrap">{s.total_points} P</td>
+                    <td className="p-2 whitespace-nowrap">
                       <button
                         type="button"
                         onClick={() => {

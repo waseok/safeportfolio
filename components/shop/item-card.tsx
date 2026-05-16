@@ -46,39 +46,45 @@ export function ItemCard({ item, currentPoints, owned, onPurchased }: Props) {
   return (
     <article
       className="relative overflow-hidden rounded-2xl border bg-white shadow-sm transition card-hover"
-      style={{borderColor: owned ? "#6EE7B7" : "#FCD34D"}}
+      style={{ borderColor: owned ? "#34d399" : "#fde68a" }}
     >
-      <div className="relative aspect-square w-full overflow-hidden bg-yellow-50">
+      {/* 상단: 아이템 아이콘·이미지 크게, 선물 박스 느낌 축소(비율 낮춤) */}
+      <div className="relative aspect-[5/3] w-full overflow-hidden bg-gradient-to-b from-amber-50 to-amber-100/40">
         {item.image_url ? (
           <Image
             src={item.image_url}
             alt={item.name}
             fill
-            className="object-cover"
+            className="object-contain p-3"
             unoptimized
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-3xl">
+          <div className="flex h-full items-center justify-center pb-1 text-7xl" aria-hidden>
             🎁
           </div>
         )}
         {owned && (
-          <div className="absolute inset-0 flex items-center justify-center bg-green-900/40">
-            <span className="rounded-full bg-green-400 px-3 py-1 text-xs font-bold text-green-900 shadow-sm">
+          <div className="absolute inset-0 flex items-center justify-center bg-emerald-900/35">
+            <span className="rounded-full bg-emerald-300 px-3 py-1 text-xs font-extrabold text-emerald-950 shadow-sm">
               ✓ 보유
             </span>
           </div>
         )}
-        <div className="absolute top-1.5 right-1.5 rounded-full px-2 py-0.5 text-[11px] font-bold shadow-sm"
-          style={{background: "linear-gradient(135deg, #FFD700, #FFC107)", color: "#78350f"}}>
+        <div
+          className="absolute top-2 right-2 rounded-full px-2.5 py-1 text-xs font-extrabold shadow-sm"
+          style={{
+            background: "linear-gradient(135deg, #FFD700, #FFC107)",
+            color: "#78350f",
+          }}
+        >
           ⭐ {item.price}P
         </div>
       </div>
-      <div className="p-2.5">
-        <h3 className="font-bold text-gray-900 text-sm truncate">{item.name}</h3>
-        <p className="text-[11px] text-gray-500 mt-0.5">{item.type}</p>
+      <div className="p-3.5">
+        <h3 className="font-extrabold text-gray-900 text-base leading-snug line-clamp-2">{item.name}</h3>
+        <p className="text-sm font-medium text-gray-500 mt-0.5">{item.type}</p>
         {error && (
-          <p className="mt-1 text-xs text-red-600" role="alert">
+          <p className="mt-1 text-sm text-red-600" role="alert">
             {error}
           </p>
         )}
@@ -87,8 +93,11 @@ export function ItemCard({ item, currentPoints, owned, onPurchased }: Props) {
             type="button"
             onClick={handlePurchase}
             disabled={!canBuy || loading}
-            className="mt-2 w-full rounded-lg py-1.5 text-sm font-bold shadow-sm hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 transition"
-            style={{background: canBuy ? "linear-gradient(135deg, #FFD700, #FFC107)" : "#E5E7EB", color: canBuy ? "#78350f" : "#9CA3AF"}}
+            className="mt-3 w-full rounded-xl py-2.5 text-base font-extrabold shadow-sm hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 transition"
+            style={{
+              background: canBuy ? "linear-gradient(135deg, #FFD700, #FFC107)" : "#E5E7EB",
+              color: canBuy ? "#78350f" : "#9CA3AF",
+            }}
           >
             {loading ? "처리 중…" : canBuy ? "🛒 구매" : "포인트 부족"}
           </button>
