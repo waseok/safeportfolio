@@ -76,14 +76,19 @@ export function ItemCard({ item, currentPoints, owned, onPurchased }: Props) {
           className="absolute top-2 right-2 rounded-full px-3 py-2 text-[15px] font-extrabold shadow-sm md:text-lg"
           style={{
             background: "linear-gradient(135deg, #FFD700, #FFC107)",
-            color: "#78350f",
+            color: "#152a4a",
           }}
         >
           ⭐ {item.price}P
         </div>
       </div>
       <div className="p-3.5">
-        <h3 className="font-extrabold text-gray-900 text-lg leading-snug line-clamp-2">{item.name}</h3>
+        <h3
+          className="font-extrabold text-lg leading-snug line-clamp-2"
+          style={{ color: "#152a4a" }}
+        >
+          {item.name}
+        </h3>
         {/* DB의 type 영어 노출 안 함 */}
         {error && (
           <p className="mt-1 text-sm text-red-600" role="alert">
@@ -98,7 +103,7 @@ export function ItemCard({ item, currentPoints, owned, onPurchased }: Props) {
             className="mt-3 w-full rounded-xl py-3 text-[17px] font-extrabold shadow-sm hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 transition"
             style={{
               background: canBuy ? "linear-gradient(135deg, #FFD700, #FFC107)" : "#E5E7EB",
-              color: canBuy ? "#78350f" : "#9CA3AF",
+              color: canBuy ? "#152a4a" : "#9CA3AF",
             }}
           >
             {loading ? "처리 중…" : canBuy ? "🛒 구매" : "포인트 부족"}

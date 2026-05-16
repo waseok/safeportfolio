@@ -6,6 +6,10 @@ import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
+/** 상점 메뉴 활성 시 노란 배경 + 진한 남색 글자 */
+const SHOP_NAV_ACTIVE =
+  "bg-gradient-to-r from-amber-300 to-yellow-400 text-[#152a4a] shadow-sm";
+
 const NAV_ITEMS = [
   { href: "/dashboard", icon: "🏠", label: "홈" },
   { href: "/gallery", icon: "🖼️", label: "우리반 안전 갤러리" },
@@ -110,14 +114,17 @@ export function StudentSidebar({
           <nav className="mt-4 flex flex-col gap-1 px-2">
             {NAV_ITEMS.map((item) => {
               const isActive = pathname === item.href;
+              const isShop = item.href === "/shop";
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={`flex items-center gap-3 rounded-lg px-3 py-3 text-[17px] font-bold transition-all ${
-                    isActive
-                      ? "bg-sky-100 text-sky-900 shadow-sm"
-                      : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                    isActive && isShop
+                      ? SHOP_NAV_ACTIVE
+                      : isActive
+                        ? "bg-sky-100 text-sky-900 shadow-sm"
+                        : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                   }`}
                 >
                   <span className="text-2xl leading-none">{item.icon}</span>
@@ -189,13 +196,18 @@ export function StudentSidebar({
       <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-sky-100 bg-white pb-2 shadow-[0_-2px_12px_rgba(0,0,0,0.08)] lg:hidden">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href;
+          const isShop = item.href === "/shop";
           return (
             <Link
               key={item.href}
               href={item.href}
               title={item.label}
-              className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-bold transition-colors leading-tight ${
-                isActive ? "text-sky-700" : "text-slate-400"
+              className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-bold transition-colors leading-tight rounded-t-lg ${
+                isActive && isShop
+                  ? "bg-gradient-to-t from-amber-300 to-yellow-400 text-[#152a4a]"
+                  : isActive
+                    ? "text-sky-700"
+                    : "text-slate-400"
               }`}
             >
               <span className={`text-xl leading-none ${isActive ? "scale-110" : ""} transition-transform`}>
