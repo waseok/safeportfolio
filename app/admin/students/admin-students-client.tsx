@@ -20,7 +20,7 @@ type StudentRow = {
   total_points: number;
 };
 
-const ASSIGN_SHORT = ["교통", "화재", "생활", "응급", "사이버", "재난", "폭력"] as const;
+const ASSIGN_SHORT = ["생활", "교통", "폭력", "중독", "재난", "직업", "응급"] as const;
 
 function isAssignmentDoneMock(studentId: string, topicIndex: number): boolean {
   let h = 0;

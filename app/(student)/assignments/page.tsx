@@ -1,9 +1,14 @@
-import { ASSIGNMENTS, CATEGORY_CARD_THEME } from "@/lib/assignments-data";
+import { CATEGORY_CARD_THEME } from "@/lib/assignments-data";
+import { fetchAssignments } from "@/lib/assignments-server";
+import { createServiceClient } from "@/lib/supabase/server";
 import { AssignmentSuggestionForm } from "@/components/assignment-suggestion-form";
 import Link from "next/link";
 
-export default function AssignmentsPage() {
-  const activeAssignments = ASSIGNMENTS.filter((a) => a.status === "active");
+export default async function AssignmentsPage() {
+  const supabase = createServiceClient();
+  const activeAssignments = (await fetchAssignments(supabase, { activeOnly: true })).filter(
+    (a) => a.status === "active",
+  );
   const totalPointPool = activeAssignments.reduce((s, a) => s + a.points, 0);
 
   return (

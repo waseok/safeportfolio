@@ -2,11 +2,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { createServiceClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  ASSIGNMENTS,
-  SAFETY_SEVEN_CATEGORIES,
-  CATEGORY_CARD_THEME,
-} from "@/lib/assignments-data";
+import { CATEGORY_CARD_THEME } from "@/lib/assignments-data";
+import { fetchActiveAssignmentsByCategory } from "@/lib/assignments-server";
 
 const LEVEL_TITLES = [
   "안전 새싹",
@@ -67,9 +64,7 @@ export default async function DashboardPage() {
   const levelProgress = ((displayTotal % POINTS_PER_LEVEL) / POINTS_PER_LEVEL) * 100;
   const levelTitle = LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
 
-  const missionsOrdered = SAFETY_SEVEN_CATEGORIES.map((cat) =>
-    ASSIGNMENTS.find((a) => a.category === cat && a.status === "active"),
-  ).filter((a): a is NonNullable<typeof a> => Boolean(a));
+  const missionsOrdered = await fetchActiveAssignmentsByCategory(supabase);
 
   return (
     <main className="space-y-6">

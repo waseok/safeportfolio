@@ -4,11 +4,7 @@ import { useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import {
-  ASSIGNMENTS,
-  CATEGORY_CARD_THEME,
-  type Assignment,
-} from "@/lib/assignments-data";
+import { CATEGORY_CARD_THEME, type Assignment } from "@/lib/assignments-data";
 
 function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -36,26 +32,34 @@ function explainUploadError(message: string): string {
   return message;
 }
 
-function findAssignmentByTitle(title: string | undefined): Assignment | undefined {
+function findAssignmentByTitle(
+  list: Assignment[],
+  title: string | undefined,
+): Assignment | undefined {
   if (!title?.trim()) return undefined;
   const decoded = decodeURIComponent(title.trim());
-  return ASSIGNMENTS.find((a) => a.title === decoded);
+  return list.find((a) => a.title === decoded);
 }
 
 type Props = {
+  assignments: Assignment[];
   /** 과제 확인·대시보드에서 넘어온 과제 제목 */
   initialAssignmentTitle?: string;
   initialCategory?: string;
 };
 
-export function UploadForm({ initialAssignmentTitle, initialCategory }: Props) {
+export function UploadForm({
+  assignments,
+  initialAssignmentTitle,
+  initialCategory,
+}: Props) {
   const activeAssignments = useMemo(
-    () => ASSIGNMENTS.filter((a) => a.status === "active"),
-    [],
+    () => assignments.filter((a) => a.status === "active"),
+    [assignments],
   );
 
   const initialAssignment = useMemo(() => {
-    const byTitle = findAssignmentByTitle(initialAssignmentTitle);
+    const byTitle = findAssignmentByTitle(activeAssignments, initialAssignmentTitle);
     if (byTitle) return byTitle;
     if (initialCategory?.trim()) {
       const cat = decodeURIComponent(initialCategory.trim());
