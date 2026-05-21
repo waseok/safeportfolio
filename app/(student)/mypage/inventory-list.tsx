@@ -3,7 +3,15 @@
 import { useState } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import { resolveShopItemImageUrl } from "@/lib/shop-item-icons";
 import { useRouter } from "next/navigation";
+
+function itemTypeKo(type: string): string {
+  if (type === "badge") return "뱃지";
+  if (type === "avatar") return "꾸미기";
+  if (type === "etc") return "상품";
+  return type;
+}
 
 type Item = {
   id: string;
@@ -62,7 +70,9 @@ export function InventoryList({
 
   return (
     <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {items.map((item) => (
+      {items.map((item) => {
+        const iconUrl = resolveShopItemImageUrl(item.name, item.image_url);
+        return (
         <li
           key={item.id}
           className={`rounded-xl border-2 bg-white p-4 shadow ${
@@ -72,22 +82,20 @@ export function InventoryList({
           }`}
         >
           <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-amber-100">
-            {item.image_url ? (
+            {iconUrl ? (
               <Image
-                src={item.image_url}
+                src={iconUrl}
                 alt={item.name}
                 fill
-                className="object-cover"
+                className="object-contain p-2"
                 unoptimized
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-4xl">
-                🎁
-              </div>
+              <div className="flex h-full items-center justify-center text-5xl">🏷️</div>
             )}
           </div>
-          <p className="mt-2 font-medium text-amber-900">{item.name}</p>
-          <p className="text-xs text-amber-700/80">{item.type}</p>
+          <p className="mt-2 text-base font-semibold text-amber-900">{item.name}</p>
+          <p className="text-sm text-amber-700/90">{itemTypeKo(item.type)}</p>
           {equipped === item.id ? (
             <button
               type="button"
@@ -108,7 +116,8 @@ export function InventoryList({
             </button>
           )}
         </li>
-      ))}
+      );
+      })}
     </ul>
   );
 }

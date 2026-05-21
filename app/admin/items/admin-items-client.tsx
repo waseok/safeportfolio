@@ -260,7 +260,7 @@ export function AdminItemsClient({
                           />
                         ) : (
                           <span className="flex h-full items-center justify-center text-xl">
-                            🎁
+                            🏷️
                           </span>
                         )}
                       </div>

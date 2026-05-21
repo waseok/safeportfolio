@@ -50,7 +50,7 @@ export default async function GalleryPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-800">안전 갤러리</h1>
+          <h1 className="text-2xl font-extrabold text-slate-800">우리반 안전 갤러리</h1>
           <p className="text-sm text-slate-500 mt-1">
             내 활동 {myPosts?.length ?? 0}건 · 승인 {approvedCount}건 · 대기 {pendingCount}건
           </p>
@@ -65,7 +65,7 @@ export default async function GalleryPage() {
             href="/upload"
             className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-sky-700"
           >
-            📷 인증샷 올리기
+            📷 안전 과제 올리기
           </Link>
         </div>
       </div>
