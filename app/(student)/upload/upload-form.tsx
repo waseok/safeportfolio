@@ -1,7 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import {
+  compressImageForUpload,
+  formatFileSize,
+  IMAGE_UPLOAD_MAX_EDGE,
+} from "@/lib/compress-image";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { CATEGORY_CARD_THEME, type Assignment } from "@/lib/assignments-data";
@@ -69,21 +74,47 @@ export function UploadForm({
   }, [initialAssignmentTitle, initialCategory, activeAssignments]);
 
   const [file, setFile] = useState<File | null>(null);
+  const [originalSize, setOriginalSize] = useState<number | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [assignmentId, setAssignmentId] = useState(initialAssignment?.id ?? "");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [compressing, setCompressing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const previewUrlRef = useRef<string | null>(null);
   const router = useRouter();
 
   const selected = activeAssignments.find((a) => a.id === assignmentId);
 
-  function handleFile(f: File | null) {
-    setFile(f);
-    if (f) {
-      setPreview(URL.createObjectURL(f));
-    } else {
-      setPreview(null);
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    };
+  }, []);
+
+  function setPreviewUrl(url: string | null) {
+    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    previewUrlRef.current = url;
+    setPreview(url);
+  }
+
+  async function handleFile(f: File | null) {
+    setError(null);
+    setFile(null);
+    setOriginalSize(null);
+    setPreviewUrl(null);
+    if (!f) return;
+
+    setCompressing(true);
+    try {
+      const compressed = await compressImageForUpload(f);
+      setFile(compressed);
+      setOriginalSize(f.size);
+      setPreviewUrl(URL.createObjectURL(compressed));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "사진을 처리하지 못했어요.");
+    } finally {
+      setCompressing(false);
     }
   }
 
@@ -109,8 +140,7 @@ export function UploadForm({
         return;
       }
 
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `${user.id}/${Date.now()}.${ext}`;
+      const path = `${user.id}/${Date.now()}.jpg`;
       const uploadResult = await withTimeout(
         supabase.storage.from("cert-images").upload(path, file, { upsert: false }),
         20000,
@@ -177,6 +207,9 @@ export function UploadForm({
                 <span className="text-5xl">📷</span>
                 <span className="font-semibold text-sm">여기를 눌러 사진을 선택하세요</span>
                 <span className="text-xs">카메라 또는 앨범에서 고를 수 있어요</span>
+                <span className="text-xs text-orange-300">
+                  올릴 때 자동으로 {IMAGE_UPLOAD_MAX_EDGE}px 이하·JPEG로 줄여 저장해요
+                </span>
               </div>
             )}
             <input
@@ -186,9 +219,17 @@ export function UploadForm({
               className="sr-only"
               required
             />
-            {file && (
-              <span className="rounded-full bg-orange-500 px-4 py-1.5 text-sm font-bold text-white">
+            {compressing && (
+              <span className="text-sm font-bold text-orange-600">⏳ 사진 최적화 중…</span>
+            )}
+            {file && !compressing && (
+              <span className="rounded-full bg-orange-500 px-4 py-1.5 text-sm font-bold text-white text-center">
                 ✓ {file.name}
+                {originalSize != null && originalSize > file.size && (
+                  <span className="block text-xs font-semibold opacity-90 mt-0.5">
+                    {formatFileSize(originalSize)} → {formatFileSize(file.size)}
+                  </span>
+                )}
               </span>
             )}
           </label>
@@ -284,14 +325,14 @@ export function UploadForm({
 
         <button
           type="submit"
-          disabled={loading || !file || !assignmentId}
+          disabled={loading || compressing || !file || !assignmentId}
           className="w-full rounded-full py-4 text-lg font-black shadow-lg transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{
             background: loading ? "#9ca3af" : "linear-gradient(135deg, #FFD700, #FFC107)",
             color: loading ? "white" : "#78350f",
           }}
         >
-          {loading ? "⏳ 업로드 중…" : "🚀 인증샷 올리기!"}
+          {loading ? "⏳ 업로드 중…" : compressing ? "⏳ 사진 준비 중…" : "🚀 인증샷 올리기!"}
         </button>
       </form>
 
