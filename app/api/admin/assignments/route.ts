@@ -77,6 +77,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "포인트는 0 이상의 정수여야 합니다." }, { status: 400 });
     }
 
+    const { data: lastRow } = await supabase
+      .from("safety_assignments")
+      .select("sort_order")
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const nextSortOrder = Math.min((lastRow?.sort_order ?? 0) + 1, 2147483647);
+
     const id = `assign-${Date.now()}`;
     const { data, error } = await supabase
       .from("safety_assignments")
@@ -89,7 +97,7 @@ export async function POST(request: Request) {
         due_date: dueDate,
         points: pointsNum,
         status: "active",
-        sort_order: Date.now(),
+        sort_order: nextSortOrder,
       })
       .select("id, title, description, category, emoji, due_date, points, status")
       .single();
