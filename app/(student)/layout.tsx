@@ -2,6 +2,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { createServiceClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { StudentSidebar } from "./student-sidebar";
+import { ReviewModeBannerSlot } from "@/components/review-mode-banner-slot";
 
 export default async function StudentLayout({
   children,
@@ -34,7 +35,9 @@ export default async function StudentLayout({
   }
 
   return (
-    <div className="relative flex min-h-screen">
+    <div className="relative flex min-h-screen flex-col">
+      <ReviewModeBannerSlot />
+      <div className="relative flex min-h-0 flex-1">
       <StudentSidebar
         userName={user.name}
         currentPoints={user.current_points}
@@ -52,6 +55,7 @@ export default async function StudentLayout({
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-sky-50/45" />
         <div className="relative z-0 mx-auto max-w-5xl">{children}</div>
       </main>
+      </div>
     </div>
   );
 }

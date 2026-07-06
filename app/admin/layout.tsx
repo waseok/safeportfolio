@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { AdminSidebar } from "./admin-sidebar";
+import { ReviewModeBannerSlot } from "@/components/review-mode-banner-slot";
 
 export default async function AdminLayout({
   children,
@@ -12,7 +13,9 @@ export default async function AdminLayout({
   if (user.role !== "teacher") redirect("/dashboard");
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen flex-col">
+      <ReviewModeBannerSlot />
+      <div className="flex min-h-0 flex-1">
       {/* 좌측 사이드바 — 딥 네이비 톤 */}
       <AdminSidebar userName={user.name} />
 
@@ -27,6 +30,7 @@ export default async function AdminLayout({
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-slate-50/50" />
         <div className="relative z-0 mx-auto max-w-6xl">{children}</div>
       </main>
+      </div>
     </div>
   );
 }

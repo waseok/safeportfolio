@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { getRedirectPath, type Role } from "@/lib/auth-utils";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -207,6 +208,16 @@ export default function LoginPage() {
             {loading && (
               <p className="text-center text-sm text-slate-400">로그인 중...</p>
             )}
+
+            <div className="border-t border-slate-200 pt-4">
+              <Link
+                href="/review"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-amber-300 bg-amber-50/80 px-4 py-3 text-sm font-extrabold text-amber-900 transition hover:border-amber-400 hover:bg-amber-100"
+              >
+                🔍 심사용 테스트 입장
+                <span className="font-medium text-amber-800/80">(로그인 없이 체험)</span>
+              </Link>
+            </div>
           </div>
         )}
 
